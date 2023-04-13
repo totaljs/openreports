@@ -1,6 +1,6 @@
 # OpenReports
 
-__OpenReports__ is a lightweight app for generating simple reports from PostgreSQL database.
+__OpenReports__ is a lightweight app for generating simple reports from a PostgreSQL database.
 
 - [Documentation](https://docs.totaljs.com/openreports/)
 - MIT license
