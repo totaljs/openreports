@@ -1,0 +1,35 @@
+<ui-component name="box" path="common.form" config="if:~PATH~;title:@(View specification);icon:ti ti-database-alt;autofocus:true;reload:?/reload;scrollbar:0;submit:?/submit;width:1300" class="hidden ~PATH~" plugin="~PATH~">
+	<div>
+		<ui-component name="codemirror" path="?.data" config="realtime:1;type:application/ld+json;minheight:300;parent:.ui-box;margin:126" style="border:0"></ui-component>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.submit = function(hide) {
+
+			var model = exports.model;
+			try {
+				var data = new Function('return ' + model.data.trim())();
+			} catch (e) {
+				EXEC('-message/warning', '@(Unexpected error: {0})'.format(e + ''));
+				return;
+			}
+
+			exports.tapi('views_save ERROR', data, function() {
+				hide();
+				exports.caller.exec('refresh');
+			});
+		};
+
+	});
+
+</script>

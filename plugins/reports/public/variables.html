@@ -1,0 +1,25 @@
+<ui-component name="miniform" path="common.form" config="if:~PATH~;title:@(Dynamic filter);icon:ti ti-filter;autofocus:1;submit:?/submit;width:500" class="hidden ~PATH~" plugin="~PATH~">
+	<div class="padding">
+		<ui-component name="properties2" path="?.items" config="defaultgroup:@(Variables)"></ui-component>
+		<div class="help"><i class="ti ti-lightbulb-on mr5"></i>@(Enter value and press enter)</div>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.submit = function() {
+			var model = exports.model;
+			model.callback();
+		};
+
+	});
+
+</script>

@@ -1,0 +1,123 @@
+<style>
+	.CLASS .type-part { background-color: #E7CAF94F !important; }
+	.CLASS .type-dashboard { background-color: #FFC16E2E !important; }
+	.CLASS .type-flowboard { background-color: #B7E0A93B !important; }
+	.CLASS .listing2 { column-gap: 7px; }
+	.CLASS .listing2 figure { margin-bottom: 7px; }
+	.CLASS .listing2 figure:hover { filter:brightness(0.9); }
+	.CLASS .controls { float: right; padding: 0 5px 0 0; line-height: 20px; }
+	.CLASS .icon { width: 24px; height: 20px; line-height: 19px; font-size: 15px; padding-left: 5px; float: left; margin-right: 5px; }
+</style>
+
+<ui-plugin config="aclass:1">
+
+	<header>
+		<label><i class="ti ti-database-alt"></i>@(Views)</label>
+		<div class="toolbar">
+			<button class="exec" data-exec="?/create"><i class="ti ti-plus-circle"></i>@(Create)</button>
+		</div>
+	</header>
+
+	<ui-component name="viewbox" path="common.page" config="parent:window;margin:60;scrollbarshadow:1" class="invisible">
+		<ui-component name="empty" path="?.items" config="parent:auto">
+
+			<script type="text/html">
+				<div>@(The database doesn't contain any views)</div>
+				<div class="mt5">
+					<span class="link exec" data-exec="?/create"><i class="ti ti-plus-circle green mr5"></i>@(Create first)</span>
+				</div>
+			</script>
+
+			<div class="padding">
+				<div class="m">
+					<div style="max-width:250px;width:100%">
+						<ui-component name="searchinput" path="?.search" config="autofocus:1;placeholder:@(Search)"></ui-component>
+					</div>
+				</div>
+				<ui-component name="search" path="?.search" config="selector:figure;datasource:?.list">
+					<ui-bind path="?.items" config="template" class="block">
+						<script type="text/html">
+							<div style="height:10px"></div>
+							<div class="listing2 m grid-4 grid-md-3 grid-sm-3 grid-xs-2">
+							{{ foreach m in value }}
+								<figure class="exec" data-exec="?/edit" data-id="{{ m.id }}" data-search="{{ m.name }}" title="{{ m.name }}">
+									<section>
+										<div class="controls">
+											<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+										</div>
+										<div>
+											<div class="icon"><i class="ti ti-database"></i></div>
+											<div class="name hellip">{{ m.name }}</div>
+										</div>
+									</section>
+								</figure>
+							{{ end }}
+							</div>
+						</script>
+					</ui-bind>
+				</ui-component>
+			</div>
+
+		</ui-component>
+	</ui-component>
+
+</ui-plugin>
+
+<ui-component name="importer" path="common.form" config="if:formview;url:/~ID~/form.html"></ui-component>
+
+
+<script>
+	PLUGIN(function(exports) {
+
+		exports.reload = function() {
+			exports.refresh();
+		};
+
+		exports.create = function() {
+			SET('formview @reset', { data: `{
+	id: "yourviewid",
+	name: "Products",
+	sql: "SELECT name, price FROM tbl_product",
+	fields: [
+		{ column: "name", name: "Name", type: "string", group: true },
+		{ column: "price", name: "Price", type: "number" }
+	]
+}` });
+			SET('common.form', 'formview');
+		};
+
+		exports.edit = function(el) {
+			var id = ATTRD(el);
+			exports.tapi(QUERIFY('views_read', { id: id }) + ' ERROR', function(response) {
+				SET('formview @reset', { data: JSON.stringify(response, null, '\t') });
+				SET('common.form', 'formview');
+			});
+		};
+
+		exports.remove = function(el) {
+			var id = ATTRD(el);
+			EXEC('-approve/show', '@(Are you sure you want to remove selected view?)', '"ti ti-remove" @(Remove)', function() {
+				exports.tapi(QUERIFY('views_remove', { id: id }) + ' ERROR', () => exports.refresh());
+			});
+		};
+
+		exports.options = function(el) {
+			var opt = {};
+			opt.element = el;
+			opt.align = 'right';
+			opt.items = [];
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'ti ti-pencil-alt' });
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'ti ti-remove red' });
+			opt.callback = function(sel) {
+				exports[sel.id](el);
+			};
+			EXEC('-menu/show', opt);
+		};
+
+		exports.refresh = function() {
+			exports.tapi('views ERROR', 'items');
+		};
+
+	});
+
+</script>

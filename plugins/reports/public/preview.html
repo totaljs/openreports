@@ -1,0 +1,142 @@
+<ui-component name="box" path="common.form" config="if:~PATH~;title:@(Data);icon:ti ti-database-alt;reload:?/reload;scrollbar:0;width:1200" class="hidden ~PATH~" plugin="~PATH~">
+	<nav>
+		<button class="exec" data-exec="?/copy"><i class="ti ti-copy"></i>@(Copy to clipboard)</button>
+		<button class="exec" data-exec="?/csv"><i class="ti ti-table"></i>@(Download CSV)</button>
+		<button class="exec" data-exec="?/xlsx"><i class="ti ti-file-excel"></i>@(Download XLSX)</button>
+	</nav>
+	<div id="reportsdata"></div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		var Box;
+
+		exports.reload = function(com) {
+			Box = com;
+			var model = exports.model;
+			exports.render(model);
+		};
+
+		exports.copy = function() {
+
+			var builder = [];
+			var model = exports.model;
+			var empty = [];
+			var text = [];
+
+			for (var col of model.columns) {
+				text.push(col.name);
+				empty.push('');
+			}
+
+			builder.push(text.join('\t'));
+
+			for (var m of model.response) {
+				var tmp = [];
+				for (var col of model.columns) {
+					var val = m[col.id];
+					if (val instanceof Date)
+						val = val.format('yyyy-MM-dd HH:mm');
+					tmp.push(val || '');
+				}
+
+				builder.push(tmp.join('\t'));
+			}
+
+			builder.push(empty.join('\t'));
+
+			EXEC('-clipboard/copy', builder.join('\n'));
+			EXEC('-notify/success', '@(The result has been copied to the clipboard)');
+		};
+
+		exports.xlsx = function() {
+			var model = exports.model;
+			var worksheet = XLSX.utils.json_to_sheet(model.response);
+			var workbook = XLSX.utils.book_new();
+			var text = [];
+
+			for (var col of model.columns)
+				text.push(col.name);
+
+			XLSX.utils.book_append_sheet(workbook, worksheet, model.name);
+			XLSX.utils.sheet_add_aoa(worksheet, [text], { origin: 'A1' });
+			XLSX.writeFile(workbook, model.name + '.xlsx', { compression: true });
+		};
+
+		exports.csv = function() {
+
+			var builder = [];
+			var model = exports.model;
+			var empty = [];
+			var text = [];
+
+			for (var col of model.columns)
+				text.push(col.name);
+
+			builder.push(text.join(','));
+
+			for (var m of model.response) {
+				var tmp = [];
+				for (var col of model.columns) {
+					var val = m[col.id];
+					if (val instanceof Date)
+						val = val.format('yyyy-MM-dd HH:mm');
+					val = val == null ? '' : val.toString();
+					tmp.push(val.indexOf(',') == -1 ? val : ('"' + val + '"'));
+				}
+
+				builder.push(tmp.join(','));
+			}
+
+			EXEC('-filesaver/save', model.name + '.csv', builder.join('\n'));
+		};
+
+		exports.render = function(data) {
+
+			var columns = [];
+
+			for (var col of data.columns) {
+
+				var obj = {};
+				obj.name = col.id;
+				obj.text = col.name;
+				obj.type = 'string';
+				obj.width = 200;
+
+				if (col.format != null)
+					obj.format = col.format;
+
+				switch (col.type) {
+					case 'boolean':
+					case 'number':
+						obj.type = col.type;
+						obj.width = 120;
+						break;
+				}
+
+				var str = '';
+
+				for (var key in obj) {
+					var val = obj[key];
+					var type = typeof(val);
+					str += (str ? ',' : '') + key + (type === 'number' || type === 'boolean' ? (':' + val) : (':"' + val + '"'));
+				}
+
+				columns.push('{' + str + '}');
+			}
+
+			$('#reportsdata').html(('<ui-component name="datagrid" path="{0}.response" config="noborder:1;height:.ui-box;margin:126;checkbox:false" class="invisible"><scri' + 'pt type="text/html">[{1}]</scr' + 'ipt></ui-component>').format(exports.name, columns.join(',')));
+			exports.tapi('reports_execute/{0} @showloading'.format(data.id), { filter: data.filter }, function(response) {
+				Box.reconfigure({ title: '@(Data): {0}'.format(response.length.pluralize('@(# records,# record,# records,# records)')) });
+				exports.set('response @hideloading', response);
+			});
+		};
+
+	});
+
+</script>

@@ -1,0 +1,27 @@
+<ui-component name="miniform" path="common.form2" config="if:~PATH~;title:@(Update field);icon:ti ti-tag;submit:?/submit;width:350;zindex:30" class="hidden ~PATH~" plugin="~PATH~">
+	<div class="padding">
+		<ui-bind path="?.scalar" config="enable">
+			<ui-component name="input" path="?.type" config="required:1;placeholder:@(Choose a type);dirsource:#scalar" default="">@(Scalar operation)</ui-component>
+		</ui-bind>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.submit = function(hide) {
+			var model = exports.form;
+			model.callback(model);
+			hide();
+		};
+
+	});
+
+</script>

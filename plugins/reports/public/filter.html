@@ -1,0 +1,89 @@
+<ui-component name="miniform" path="common.form2" config="if:~PATH~;title:@(Update filter);icon:ti ti-tag;reload:?/reload;submit:?/submit;width:350;zindex:30" class="hidden ~PATH~" plugin="~PATH~">
+	<div class="padding">
+
+		<ui-component name="input" path="?.type" config="required:1;dirsource:#filtertypes" default="'exact'" class="m">@(Filter type)</ui-component>
+
+		<ui-bind path="?" config="show:value.type!=='between'&&value.datatype!=='date';track:type,datatype">
+			<ui-component name="input" path="?.value" config="required:1" default="''">@(Value)</ui-component>
+		</ui-bind>
+
+		<ui-bind path="?" config="show:value.type!=='between'&&value.datatype==='date';track:type,datatype">
+			<ui-component name="input" path="?.valuedate" config="required:1;type:date;placeholder:@(yyyy-MM-dd)" default="''">@(Value)</ui-component>
+		</ui-bind>
+
+		<ui-bind path="?" config="show:value.datatype==='number'&&value.type==='between';track:datatype,type">
+			<div class="grid-2">
+				<div class="m">
+					<ui-component name="input" path="?.numbeg" config="monospace:1;align:1">@(From)</ui-component>
+				</div>
+				<div class="m">
+					<ui-component name="input" path="?.numend" config="monospace:1;align:1">@(To)</ui-component>
+				</div>
+			</div>
+		</ui-bind>
+
+		<ui-bind path="?" config="show:value.datatype==='date'&&value.type==='between';track:datatype,type">
+			<div class="grid-2">
+				<div class="m">
+					<ui-component name="input" path="?.datebeg" config="type:date;align:1;monospace:1">@(From)</ui-component>
+				</div>
+				<div class="m">
+					<ui-component name="input" path="?.datend" config="type:date;align:1;monospace:1">@(To)</ui-component>
+				</div>
+			</div>
+		</ui-bind>
+
+		<div class="help">@(You can use dynamic variables in the form <code>{Label}</code>.)</div>
+
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	DEF.cl.filtertypes = [];
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function() {
+
+			var model = exports.model;
+			var arr = [];
+
+			switch (model.datatype) {
+				case 'number':
+				case 'date':
+					arr.push({ id: '<=', name: '@(Lower than)' });
+					arr.push({ id: '>=', name: '@(Great than)' });
+					arr.push({ id: '=', name: '@(Equal)' });
+					arr.push({ id: '<>', name: '@(Not equal)' });
+					arr.push({ id: 'between', name: '@(Between)' });
+					break;
+				case 'boolean':
+					arr.push({ id: '=', name: '@(Equal)' });
+					arr.push({ id: '<>', name: '@(Not equal)' });
+					break;
+				case 'string':
+					arr.push({ id: '=', name: '@(Equal)' });
+					arr.push({ id: '<>', name: '@(Not equal)' });
+					arr.push({ id: 'search', name: '@(Search)' });
+					break;
+			}
+
+			SET('#filtertypes', arr);
+		};
+
+		exports.submit = function(hide) {
+			var model = exports.form;
+			model.callback(model);
+			hide();
+		};
+
+	});
+
+</script>

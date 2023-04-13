@@ -1,0 +1,499 @@
+<style>
+	.CLASS .current .toolbar button { height: 30px; line-height: 30px; }
+	.CLASS .current .items { background-color: #F8F8F8; padding: 15px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius); font-size: 12px; display: block; }
+	.CLASS .current .item { padding: 6px 10px; background-color: #FFF; border-radius: var(--radius); margin-bottom: 3px; }
+	.CLASS .current .item i { margin-right: 5px; }
+	.CLASS .fixed .items { background-color: #F8F8F8; padding: 15px; border: 1px solid rgba(0,0,0,0.07); border-radius: var(--radius); font-size: 12px; display: block; }
+	.CLASS .fixed .item { padding: 6px 10px; background-color: #FFF; border-radius: var(--radius); margin-bottom: 3px; }
+	.CLASS .fixed .item i { margin-right: 5px; }
+	.CLASS .exec { cursor: pointer; }
+</style>
+
+<ui-component name="box" path="common.form" config="if:~PATH~;icon:ti ti-table;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:740" class="hidden ~PATH~" plugin="~PATH~">
+	<div>
+		<div class="padding">
+			<div class="grid-2">
+				<div class="m">
+					<ui-component name="input" path="?.name" config="required:1">@(Name)</ui-component>
+				</div>
+				<div class="m">
+					<ui-component name="input" path="?.viewid" config="dirsource:#views;placeholder:@(Choose a view);required:1">@(View)</ui-component>
+				</div>
+			</div>
+			<hr />
+			<div class="grid-3">
+				<div class="m">
+					<ui-component name="input" path="?.category" config="dirsource:#categories;dirempty:@(Empty);dircustom:1;dirplaceholder:@(Enter new or search for an existing);dirminwidth:300">@(Category)</ui-component>
+				</div>
+				<div class="m">
+					<ui-component name="input" path="?.icon" config="type:icon">@(Icon)</ui-component>
+				</div>
+				<div class="m">
+					<ui-component name="input" path="?.color" config="type:color">@(Color)</ui-component>
+				</div>
+			</div>
+		</div>
+		<hr class="nmb nmt" />
+		<div class="padding">
+			<div class="current fs12">
+				<div class="m">
+					<div data-id="group">
+						<div class="exec" data-exec="?/add">
+							<i class="ti ti-plus-circle green mr5"></i>@(Group:)
+						</div>
+						<div class="mt5">
+							<div class="items" style="background-color:#EDF8E4">
+								<ui-component name="movable" config="selector:.item;exec:?/move">
+									<ui-bind path="?|render.group" config="template;helpers:?|helpers">
+										<script type="text/html">
+											{{ if !value || !value.length }}
+												<div class="fs11 gray"><i class="ti ti-ban mr5"></i>@(Not defined groups)</div>
+											{{ fi }}
+											{{ foreach m in value }}
+												<div data-id="{{ m.id }}" class="item" data-prevent="true" draggable="true">
+													<span class="pull-right red exec" data-exec="?/remove"><i class="ti ti-trash nmr"></i></span>
+													<i class="ti ti-folder"></i>{{ m.html | raw }}
+												</div>
+											{{ end }}
+										</script>
+									</ui-bind>
+								</ui-component>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="m">
+					<div data-id="filter">
+						<div class="exec" data-exec="?/add">
+							<i class="ti ti-plus-circle green mr5"></i>@(Filter:)
+						</div>
+						<div class="mt5">
+							<div class="items" style="background-color:#F2F1F7">
+								<ui-component name="movable" config="selector:.item;exec:?/move">
+									<ui-bind path="?|render.filter" config="template;helpers:?|helpers">
+										<script type="text/html">
+											{{ if !value || !value.length }}
+												<div class="fs11 gray"><i class="ti ti-ban mr5"></i>@(Not defined filter)</div>
+											{{ fi }}
+											{{ foreach m in value }}
+												<div data-id="{{ m.id }}" class="item exec" data-exec="?/setfilter" draggable="true">
+													<span class="pull-right red exec" data-exec="?/remove" data-prevent="true"><i class="ti ti-trash nmr"></i></span>
+													<i class="ti ti-filter"></i>{{ m.html | raw }}
+												</div>
+											{{ end }}
+										</script>
+									</ui-bind>
+								</ui-component>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="m">
+					<div data-id="fields">
+						<div class="exec" data-exec="?/add">
+							<i class="ti ti-plus-circle green mr5"></i>@(Fields:)
+						</div>
+						<div class="mt5">
+							<div class="items" style="background-color:#EFFBFF">
+								<ui-component name="movable" config="selector:.item;exec:?/move">
+									<ui-bind path="?|render.fields" config="template;helpers:?|helpers">
+										<script type="text/html">
+											{{ if !value || !value.length }}
+												<div class="fs11 gray"><i class="ti ti-ban mr5"></i>@(Not defined fields)</div>
+											{{ fi }}
+											{{ foreach m in value }}
+												<div data-id="{{ m.id }}" class="item exec" data-exec="?/setfields" draggable="true">
+													<span class="pull-right red exec" data-exec="?/remove" data-prevent="true"><i class="ti ti-trash nmr"></i></span>
+													<i class="ti ti-tag"></i>{{ m.html | raw }}
+												</div>
+											{{ end }}
+										</script>
+									</ui-bind>
+								</ui-component>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="m">
+					<div data-id="sort">
+						<div class="exec" data-exec="?/add">
+							<i class="ti ti-plus-circle green mr5"></i>@(Sort:)
+						</div>
+						<div class="mt5">
+							<div class="items" style="background-color:#FFFEEF">
+								<ui-component name="movable" config="selector:.item;exec:?/move">
+									<ui-bind path="?|render.sort" config="template;helpers:?|helpers">
+										<script type="text/html">
+											{{ if !value || !value.length }}
+												<div class="fs11 gray"><i class="ti ti-ban mr5"></i>@(Not defined sorting)</div>
+											{{ fi }}
+											{{ foreach m in value }}
+												<div data-id="{{ m.id }}" class="item exec" data-exec="?/setsort" draggable="true">
+													<span class="pull-right red exec" data-exec="?/remove" data-prevent="true"><i class="ti ti-trash nmr"></i></span>
+													{{ m.html | raw }}</span>
+												</div>
+											{{ end }}
+										</script>
+									</ui-bind>
+								</ui-component>
+							</div>
+						</div>
+					</div>
+				</div>
+				<hr />
+				<div class="grid-3">
+					<div class="m">
+						<ui-component name="input" path="?.limit" config="type:number;icon:ti ti-filter" default="1000">@(Limit output to)</ui-component>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		var helpers = {};
+		var meta = {};
+		var types = {};
+
+		exports.meta = meta;
+		exports.helpers = helpers;
+
+		exports.reload = function(com) {
+			var model = exports.model;
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update report)' : '@(Create report)' });
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+
+			var group = [];
+			var fields = [];
+			var filter = [];
+			var model = exports.model;
+			var cache = {};
+			var view = model.viewid ? DEF.cl.views.findItem('id', model.viewid) : null;
+
+			if (!model.sort)
+				model.sort = [];
+
+			if (!model.filter)
+				model.filter = [];
+
+			if (!model.group)
+				model.group = [];
+
+			if (!model.fields)
+				model.fields = [];
+
+			meta = {};
+			meta.group = [];
+			meta.filter = [];
+			meta.fields = [];
+			meta.sort = [];
+
+			types = {};
+
+			if (view) {
+				for (var m of view.fields) {
+
+					var item = CLONE(m);
+
+					cache[item.id] = m;
+
+					if (item.group)
+						meta.group.push(item);
+
+					if (!model.group.length || item.type === 'number' || model.group.findItem('id', item.id)) {
+						meta.fields.push(item);
+						meta.sort.push(item);
+					}
+
+					meta.filter.push(item);
+					types[item.id] = item.type;
+				}
+			}
+
+			var rem = [];
+			for (var m of model.fields) {
+				if (!meta.fields.findItem('id', m.id))
+					rem.push(m);
+			}
+
+			var removed = false;
+
+			if (rem.length) {
+				while (rem.length)
+					model.fields.splice(model.fields.indexOf(rem.shift(), 1));
+				removed = true;
+			}
+
+			exports.meta = meta;
+
+			var tmp;
+			var render = {};
+			render.group = [];
+			render.fields = [];
+			render.filter = [];
+			render.sort = [];
+
+			var rem = [];
+
+			for (var m of model.group) {
+				let field = cache[m.id];
+				if (field) {
+					tmp = CLONE(m);
+					tmp.html = Thelpers.encode(field.name);
+					render.group.push(tmp);
+				} else
+					rem.push(m);
+			}
+
+			for (var m of rem)
+				model.group.splice(model.group.indexOf(m), 1);
+
+			rem = [];
+
+			for (let m of model.filter) {
+				let field = cache[m.id];
+				if (field) {
+					tmp = CLONE(m);
+					var val = tmp.value;
+					if (typeof(val) === 'boolean')
+						val = val ? '@(true)' : '@(false)';
+					if (val != null)
+						val = Thelpers.encode(val + '');
+					tmp.html = Thelpers.encode(field.name) + ' <span class="badge badge-orange badge-medium">' + tmp.type + '</span> ' + (tmp.value ? '<span class="monospace badge badge-gray badge-medium">{0}</span>'.format(val) : '<em>@(empty)</em>');
+					render.filter.push(tmp);
+				} else
+					rem.push(m);
+			}
+
+			for (var m of rem)
+				model.filter.splice(model.filter.indexOf(m), 1);
+
+			rem = [];
+
+			for (let m of model.fields) {
+				let field = cache[m.id];
+				if (field) {
+
+					if (model.group.length && !model.group.findItem('id', m.id) && field.type === 'number' && !m.type)
+						m.type = 'max';
+
+					tmp = CLONE(m);
+
+					tmp.html = Thelpers.encode(field.name) + (tmp.type ? ' <span class="badge badge-blue badge-medium">{0}</span>'.format(DEF.cl.scalar.findValue('id', tmp.type, 'name')) : '');
+					render.fields.push(tmp);
+				} else
+					rem.push(m);
+			}
+
+			for (var m of rem)
+				model.fields.splice(model.fields.indexOf(m), 1);
+
+			rem = [];
+
+			for (let m of model.sort) {
+				let field = cache[m.id];
+				if (field) {
+					tmp = CLONE(m);
+					tmp.html = '<i class="ti ti- ti ti-arrow-{0}"></i>'.format(tmp.type === 'asc' ? 'up' : 'down') + Thelpers.encode(field.name) + (tmp.type ? ' <span class="badge badge-{0} badge-medium">{1}</span>'.format(tmp.type === 'asc' ? 'orange' : 'blue', DEF.cl.sort.findValue('id', tmp.type, 'name')) : '');
+					render.sort.push(tmp);
+				} else
+					rem.push(m);
+			}
+
+			for (var m of rem)
+				model.sort.splice(model.sort.indexOf(m), 1);
+
+			exports.render = render;
+			exports.upd('|render');
+		};
+
+		exports.add = function(el) {
+
+			var model = exports.model;
+			var id = ATTRD(el);
+			var opt = {};
+
+			opt.element = el;
+			opt.items = meta[id];
+			opt.callback = function(sel) {
+
+				var tmp;
+
+				switch (id) {
+
+					case 'group':
+						if (!model.group.findItem('id', sel.id)) {
+							exports.push('group', { id: sel.id });
+							exports.refresh();
+						}
+						break;
+
+					case 'filter':
+						tmp = {};
+						tmp.type = '=';
+						switch (types[sel.id]) {
+							case 'number':
+								tmp.value = '0';
+								break;
+							case 'boolean':
+								tmp.value = 'true';
+								break;
+							case 'string':
+								tmp.value = '';
+								break;
+							case 'date':
+								tmp.value = NOW.format('yyyy-MM-dd');
+								break;
+						}
+						exports.push('filter', { id: sel.id, type: tmp.type, value: tmp.value });
+						exports.refresh();
+						break;
+
+					case 'fields':
+						if (!model.fields.findItem('id', sel.id)) {
+							tmp = {};
+							tmp.id = sel.id;
+							tmp.type = model.group.length && model.group.findItem('id', sel.id) ? '' : (model.group.length ? 'max' : '');
+							exports.push('fields', tmp);
+							exports.refresh();
+						}
+						break;
+
+					case 'sort':
+						if (!model.sort.findItem('id', sel.id)) {
+							tmp = {};
+							tmp.id = sel.id;
+							tmp.type = 'desc';
+							exports.push('sort', tmp);
+							exports.refresh();
+						}
+						break;
+				}
+
+			};
+
+			SETTER('directory/show', opt);
+		};
+
+		exports.remove = function(el) {
+			var root = el.closest('.items');
+			var id = ATTRD(el);
+			var typeid = ATTRD(root);
+			var model = exports.model;
+			var index = model[typeid].findIndex('id', id);
+			model[typeid].splice(index, 1);
+			exports.refresh();
+			exports.upd(typeid);
+		};
+
+		exports.submit = function(hide) {
+			var model = exports.form;
+			exports.tapi('reports_{0} ERROR'.format((model.id ? 'update/{id}'.args(model) : 'create')), model, function() {
+				exports.caller.exec('refresh');
+				hide();
+			});
+		};
+
+		exports.setfields = function(el) {
+			var model = exports.model;
+			var id = ATTRD(el);
+			var type = meta.fields.findItem('id', id);
+			var item = model.fields.findItem('id', id);
+			var form = CLONE(item);
+			form.scalar = model.group.length > 0 && type.type === 'number' && model.group.findItem('id', id) == null;
+			form.callback = function(val) {
+				item.type = val.type;
+				exports.upd('fields');
+				exports.refresh();
+			};
+			SET('formreportfield @reset', form);
+			SET('common.form2', 'formreportfield');
+		};
+
+		exports.setsort = function(el) {
+			var model = exports.model;
+			var id = ATTRD(el);
+			var type = meta.fields.findItem('id', id);
+			var item = model.sort.findItem('id', id);
+			var opt = {};
+			opt.element = el;
+			opt.align = 'left';
+			opt.items = DEF.cl.sort;
+			opt.callback = function(sel) {
+				item.type = sel.id;
+				exports.upd('sort');
+				exports.refresh();
+			};
+			EXEC('-menu/show', opt);
+		};
+
+		exports.setfilter = function(el) {
+			var model = exports.model;
+			var id = ATTRD(el);
+			var type = meta.filter.findItem('id', id);
+			var item = model.filter.findItem('id', id);
+			var form = CLONE(item);
+			form.datatype = type.type;
+			form.callback = function(val) {
+				switch (form.datatype) {
+					case 'string':
+						item.value = val.value;
+						break;
+					case 'number':
+						if (item.type === 'between')
+							item.value = val.numbeg + ' - ' + val.numend;
+						else
+							item.value = val.value;
+						break;
+					case 'date':
+						if (item.type === 'between')
+							item.value = (val.datebeg ? val.datebeg.format('yyyy-MM-dd') : '') + ' - ' + (val.dateend ? val.dateend.format('yyyy-MM-dd') : '');
+						else
+							item.value = val.valuedate;
+						break;
+				}
+
+				item.type = val.type;
+				exports.upd('filter');
+				exports.refresh();
+			};
+			SET('formreportfilter @default', form);
+			SET('common.form2', 'formreportfilter');
+		};
+
+		exports.move = function(arr, el) {
+
+			var type = ATTRD(el.closest('.items'));
+			var model = exports.model;
+			var items = model[type];
+			var output = [];
+
+			for (var m of arr) {
+				var id = ATTRD(m);
+				var item = items.findItem('id', id);
+				output.push(item);
+			}
+
+			model[type] = output;
+			exports.upd(type);
+		};
+
+		exports.watch('viewid', exports.refresh);
+
+	});
+
+</script>

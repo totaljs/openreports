@@ -1,0 +1,232 @@
+<style>
+	.CLASS .type-part { background-color: #E7CAF94F !important; }
+	.CLASS .type-dashboard { background-color: #FFC16E2E !important; }
+	.CLASS .type-flowboard { background-color: #B7E0A93B !important; }
+	.CLASS .listing2 { column-gap: 7px; }
+	.CLASS .listing2 figure { margin-bottom: 7px; }
+	.CLASS .listing2 figure:hover { filter:brightness(0.9); }
+	.CLASS .controls { float: right; padding: 0 5px 0 0; line-height: 20px; }
+	.CLASS .icon { width: 24px; height: 20px; line-height: 19px; font-size: 15px; padding-left: 5px; float: left; margin-right: 5px; }
+</style>
+
+<ui-plugin config="aclass:1">
+
+	<header>
+		<label><i class="ti ti-table-alt"></i>@(Reports)</label>
+		<div class="toolbar">
+			<button class="exec b" data-exec="?/create"><i class="ti ti-plus-circle"></i>@(Create)</button>
+			<button class="exec" data-exec="?/refresh"><i class="ti ti-sync"></i>@(Refresh)</button>
+		</div>
+	</header>
+
+	<ui-component name="viewbox" path="common.page" config="parent:window;margin:60;scrollbarshadow:1" class="invisible">
+		<ui-component name="empty" path="?.list" config="parent:auto">
+
+			<script type="text/html">
+				<div>@(The database doesn't contain any reports)</div>
+				<div class="mt5">
+					<span class="link exec" data-exec="?/create"><i class="ti ti-plus-circle green mr5"></i>@(Create first)</span>
+				</div>
+			</script>
+
+			<div class="padding">
+				<div class="m">
+					<div style="max-width:250px;width:100%">
+						<ui-component name="searchinput" path="?.search" config="autofocus:1;placeholder:@(Search)"></ui-component>
+					</div>
+				</div>
+				<ui-component name="search" path="?.search" config="selector:figure;datasource:?.list">
+					<ui-bind path="?.list" config="template" class="block">
+						<script type="text/html">
+						{{ foreach g in value }}
+							{{ if g.name }}
+							<div class="caption m">
+								<label>{{ g.name }}</label>
+							</div>
+							{{ else }}
+							<div style="height:10px"></div>
+							{{ fi }}
+							<div class="listing2 m grid-4 grid-md-3 grid-sm-3 grid-xs-2">
+							{{ foreach m in g.items }}
+								<figure class="exec" data-exec="?/preview" data-id="{{ m.id }}" data-search="{{ m.name }}" title="{{ m.name }}">
+									<section>
+										{{ if m.controls }}
+										<div class="controls">
+											<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+										</div>
+										{{ fi }}
+										<div>
+											<div class="icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon | empty('ti ti-list') }}"></i></div>
+											<div class="name hellip">{{ m.name }}</div>
+										</div>
+									</section>
+								</figure>
+							{{ end }}
+							</div>
+						{{ end }}
+						</script>
+					</ui-bind>
+				</ui-component>
+			</div>
+
+		</ui-component>
+	</ui-component>
+
+</ui-plugin>
+
+<ui-component name="importer" path="common.form" config="if:formreport;url:/~ID~/form.html"></ui-component>
+<ui-component name="importer" path="common.form2" config="if:formreportfield;url:/~ID~/field.html"></ui-component>
+<ui-component name="importer" path="common.form2" config="if:formreportfilter;url:/~ID~/filter.html"></ui-component>
+<ui-component name="importer" path="common.form" config="if:formvariables;url:/~ID~/variables.html"></ui-component>
+<ui-component name="importer" path="common.form" config="if:formpreview;url:/~ID~/preview.html"></ui-component>
+
+<script>
+
+	DEF.cl.scalar = [{ id: 'min', name: '@(MIN)' }, { id: 'max', name: '@(MAX)' }, { id: 'avg', name: '@(AVG)' }, { id: 'sum', name: '@(SUM)' }];
+	DEF.cl.sort = [{ id: 'asc', name: '@(Ascending)', icon: 'ti ti-long-arrow-up' }, { id: 'desc', name: '@(Descending)', icon: 'ti ti-arrow-down' }];
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function() {
+			exports.tapi('views', '#views');
+			exports.refresh();
+		};
+
+		exports.refresh = function(el) {
+			el && el.find('i').aclass('ti-spin').rclass('ti-spin', 1000);
+			exports.tapi('reports ERROR', function(response) {
+
+				var categories = {};
+				var apps = [];
+				var admin = !UNAUTHORIZED('admin');
+
+				for (var item of response) {
+
+					if (!item.category)
+						item.category = '$';
+
+					item.controls = admin == true;
+
+					if (categories[item.category])
+						categories[item.category].push(item);
+					else
+						categories[item.category] = [item];
+				}
+
+				var items = [];
+				var def = { name: '', items: categories.$ || [] };
+
+				delete categories.$;
+
+				for (var key in categories)
+					items.push({ name: key, items: categories[key] });
+
+				items.quicksort('name');
+
+				if (def.items.length)
+					items.unshift(def);
+
+				exports.set('#categories', Object.keys(categories));
+				exports.set('list', items);
+				exports.set('items @hideloading', response);
+			});
+		};
+
+		exports.create = function() {
+			SET('formreport @reset', { group: [], fields: [], filter: [], sort: [] });
+			SET('common.form', 'formreport');
+		};
+
+		exports.preview = function(el) {
+			var id = ATTRD(el);
+			var model = exports.model;
+			exports.tapi('reports_read/{0} ERROR'.format(id), function(response) {
+
+				var view = DEF.cl.views.findItem('id', response.viewid);
+				var fields = [];
+
+				for (var m of response.fields) {
+					var field = view.fields.findItem('id', m.id);
+					fields.push(field);
+				}
+
+				var variables = [];
+
+				for (var m of response.filter) {
+					if (m.value && typeof(m.value) === 'string' && (/\{.*?\}/).test(m.value)) {
+						let id = HASH(m.value).toString(36);
+						variables.push({ name: id, text: m.value, label: m.value.replace(/\{|\}/g, '').trim(), type: view.fields.findValue('id', m.id, 'type', 'string'), placeholder: '@(Enter a value and press enter)', required: 1, target: m });
+					}
+				}
+
+				var data = {};
+				data.id = response.id;
+				data.columns = fields;
+				data.name = response.name;
+
+				if (variables.length) {
+					var filter = {};
+					filter.items = variables;
+					filter.callback = function() {
+
+						// The power of referencing
+						for (var m of variables)
+							m.target.value = m.value;
+
+						data.filter = response.filter;
+						SET('formpreview', data);
+						SET('common.form', 'formpreview');
+					};
+
+					SET('formvariables @reset', filter);
+					SET('common.form', 'formvariables');
+				} else {
+					SET('formpreview', data);
+					SET('common.form', 'formpreview');
+				}
+			});
+		};
+
+		exports.edit = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('reports_read/{0} ERROR'.format(id), function(response) {
+				SET('formreport @reset', response);
+				SET('common.form', 'formreport');
+			});
+		};
+
+		exports.remove = function(el) {
+			var id = ATTRD(el);
+			EXEC('-approve/show', '@(Are you sure you want to remove selected report?)', '"ti ti-remove" @(Remove)', function() {
+				exports.tapi('reports_remove/{0} ERROR'.format(id), () => exports.refresh());
+			});
+		};
+
+		exports.clone = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('reports_clone/{0} ERROR'.format(id), function(response) {
+				exports.refresh();
+				exports.edit(response.value);
+			});
+		};
+
+		exports.options = function(el) {
+			var opt = {};
+			opt.element = el;
+			opt.align = 'right';
+			opt.items = [];
+			opt.items.push({ id: 'preview', name: '@(Browse data)', classname: 'b', icon: 'ti ti-database-alt' });
+			opt.items.push('-');
+			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'ti ti-clone' });
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'ti ti-pencil-alt' });
+			opt.items.push('-');
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'ti ti-remove red' });
+			opt.callback = function(sel) {
+				exports[sel.id](el);
+			};
+			EXEC('-menu/show', opt);
+		};
+
+	});
+
+</script>
