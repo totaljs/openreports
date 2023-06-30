@@ -28,6 +28,8 @@ CONF.op_icon = 'ti ti-database-alt';
 // Loads configuration
 LOADCONFIG(db.config);
 
+CONF.db && require('querybuilderpg').init('default', CONF.db, 1, ERROR('DB'));
+
 // UI components
 COMPONENTATOR('ui', 'exec,locale,codemirror,aselected,page,viewbox,input,importer,box,validate,loading,selected,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2', true);
 

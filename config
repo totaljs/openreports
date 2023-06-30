@@ -1,1 +1,1 @@
-database             : postgresql://user:password@localhost/database
+default_uid          : f
