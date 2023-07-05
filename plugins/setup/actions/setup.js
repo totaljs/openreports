@@ -21,7 +21,6 @@ NEWACTION('setup_read', {
 
 NEWACTION('account', {
 	name: 'Read account data',
-	permissions: 'setup',
 	action: function($) {
 		$.callback($.user.json ? $.user.json() : $.user);
 	}
