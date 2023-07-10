@@ -14,6 +14,9 @@ if (db.views) {
 
 var config = db.config;
 
+if (CONF.database && !config.database)
+	config.database = CONF.database;
+
 if (!config.name)
 	config.name = 'App';
 
@@ -28,7 +31,7 @@ LOADCONFIG(db.config);
 if (!CONF.cdn)
 	CONF.cdn = '//cdn.componentator.com';
 
-CONF.db && require('querybuilderpg').init('default', CONF.db, 1, ERROR('DB'));
+CONF.database && require('querybuilderpg').init('default', CONF.database, 1, ERROR('DB'));
 
 // UI components
 COMPONENTATOR('ui', 'exec,locale,codemirror,aselected,page,viewbox,input,importer,box,validate,loading,selected,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2', true);

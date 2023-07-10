@@ -1,12 +1,12 @@
 NEWACTION('setup_save', {
 	name: 'Save configuration',
 	permissions: 'setup',
-	input: '*name, *db, op_reqtoken, op_restoken',
+	input: '*name, *database, op_reqtoken, op_restoken',
 	action: function($, model) {
 		COPY(model, MAIN.db.config);
 		LOADCONFIG(model);
 		MAIN.db.save();
-		CONF.db && require('querybuilderpg').init('default', CONF.db, 1, ERROR('DB'));
+		CONF.database && require('querybuilderpg').init('default', CONF.database, 1, ERROR('DB'));
 		$.success();
 	}
 });
