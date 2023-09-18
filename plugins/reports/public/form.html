@@ -451,6 +451,7 @@
 			form.callback = function(val) {
 				switch (form.datatype) {
 					case 'string':
+					case 'boolean':
 						item.value = val.value;
 						break;
 					case 'number':

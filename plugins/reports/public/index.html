@@ -155,7 +155,8 @@
 				for (var m of response.filter) {
 					if (m.value && typeof(m.value) === 'string' && (/\{.*?\}/).test(m.value)) {
 						let id = HASH(m.value).toString(36);
-						variables.push({ name: id, text: m.value, label: m.value.replace(/\{|\}/g, '').trim(), type: view.fields.findValue('id', m.id, 'type', 'string'), placeholder: '@(Enter a value and press enter)', required: 1, target: m });
+						let type = view.fields.findValue('id', m.id, 'type', 'string');
+						variables.push({ name: id, text: m.value, label: m.value.replace(/\{|\}/g, '').trim(), type: type, placeholder: '@(Enter a value and press enter)', required: type === 'boolean' ? 0 : 1, target: m });
 					}
 				}
 
