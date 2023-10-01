@@ -18,7 +18,7 @@ if (CONF.database && !config.database)
 	config.database = CONF.database;
 
 if (!config.name)
-	config.name = 'App';
+	config.name = 'OpenReports';
 
 // Fixed settings
 CONF.allow_custom_titles = true;
