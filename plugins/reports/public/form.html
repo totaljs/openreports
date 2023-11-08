@@ -164,6 +164,7 @@
 		var helpers = {};
 		var meta = {};
 		var types = {};
+		var caller;
 
 		exports.meta = meta;
 		exports.helpers = helpers;
@@ -172,6 +173,7 @@
 			var model = exports.model;
 			var id = model ? model.id : null;
 			com.reconfigure({ title: id ? '@(Update report)' : '@(Create report)' });
+			caller = exports.caller;
 			exports.refresh();
 		};
 
@@ -403,7 +405,7 @@
 		exports.submit = function(hide) {
 			var model = exports.form;
 			exports.tapi('reports_{0} ERROR'.format((model.id ? 'update/{id}'.args(model) : 'create')), model, function() {
-				exports.caller.exec('refresh');
+				caller.exec('refresh');
 				hide();
 			});
 		};
@@ -447,11 +449,31 @@
 			var type = meta.filter.findItem('id', id);
 			var item = model.filter.findItem('id', id);
 			var form = CLONE(item);
+			var tmp;
+
 			form.datatype = type.type;
+
+			switch (form.datatype) {
+				case 'date':
+					if (item.type === 'between') {
+						tmp = item.value.split(' - ');
+						form.datebeg = (tmp[0] || '').trim();
+						form.dateend = (tmp[1] || '').trim();
+					} else
+						form.valuedate = item.value;
+					break;
+				case 'number':
+					if (item.type === 'between') {
+						tmp = item.value.split(' - ');
+						form.numbeg = (tmp[0] || '').trim();
+						form.numend = (tmp[1] || '').trim();
+					}
+					break;
+			}
+
 			form.callback = function(val) {
 				switch (form.datatype) {
 					case 'string':
-					case 'boolean':
 						item.value = val.value;
 						break;
 					case 'number':
@@ -462,7 +484,7 @@
 						break;
 					case 'date':
 						if (item.type === 'between')
-							item.value = (val.datebeg ? val.datebeg.format('yyyy-MM-dd') : '') + ' - ' + (val.dateend ? val.dateend.format('yyyy-MM-dd') : '');
+							item.value = (val.datebeg ? val.datebeg : '') + ' - ' + (val.dateend ? val.dateend : '');
 						else
 							item.value = val.valuedate;
 						break;
