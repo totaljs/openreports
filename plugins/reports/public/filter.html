@@ -8,7 +8,7 @@
 		</ui-bind>
 
 		<ui-bind path="?" config="show:value.type!=='between'&&value.datatype==='date';track:type,datatype">
-			<ui-component name="input" path="?.valuedate" config="required:1;type:date;placeholder:@(yyyy-MM-dd)" default="''">@(Value)</ui-component>
+			<ui-component name="input" path="?.valuedate" config="required:1;placeholder:@(yyyy-mm-dd);ricon:calendar;riconclick:?/date" default="''">@(Value)</ui-component>
 		</ui-bind>
 
 		<ui-bind path="?" config="show:value.datatype==='number'&&value.type==='between';track:datatype,type">
@@ -25,10 +25,10 @@
 		<ui-bind path="?" config="show:value.datatype==='date'&&value.type==='between';track:datatype,type">
 			<div class="grid-2">
 				<div class="m">
-					<ui-component name="input" path="?.datebeg" config="type:date;align:1;monospace:1">@(From)</ui-component>
+					<ui-component name="input" path="?.datebeg" config="align:1;monospace:1;ricon:calendar;riconclick:?/date" default="''">@(From)</ui-component>
 				</div>
 				<div class="m">
-					<ui-component name="input" path="?.datend" config="type:date;align:1;monospace:1">@(To)</ui-component>
+					<ui-component name="input" path="?.dateend" config="align:1;monospace:1;ricon:calendar;riconclick:?/date" default="''">@(To)</ui-component>
 				</div>
 			</div>
 		</ui-bind>
@@ -76,6 +76,17 @@
 			}
 
 			SET('#filtertypes', arr);
+		};
+
+		exports.date = function(com, el) {
+			var opt = {};
+			opt.element = el;
+			opt.align = 'right';
+			opt.callback = function(val) {
+				com.set(val.format('yyyy-MM-dd'));
+				com.change(true);
+			};
+			SETTER('datepicker/show', opt);
 		};
 
 		exports.submit = function(hide) {

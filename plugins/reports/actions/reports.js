@@ -9,9 +9,10 @@ NEWACTION('reports', {
 	}
 });
 
-NEWACTION('reports_read/{*id:UID}', {
+NEWACTION('reports_read', {
 	name: 'Read report',
 	permissions: 'reports',
+	params: '*id:UID',
 	action: function($) {
 		var params = $.params;
 		var item = MAIN.db.items.findItem('id', params.id);
@@ -22,9 +23,10 @@ NEWACTION('reports_read/{*id:UID}', {
 	}
 });
 
-NEWACTION('reports_clone/{id:UID}', {
-	name: 'Read report',
+NEWACTION('reports_clone', {
+	name: 'Clone report',
 	permissions: 'reports',
+	params: '*id:UID',
 	action: function($) {
 		var params = $.params;
 		var item = MAIN.db.items.findItem('id', params.id);
@@ -53,10 +55,11 @@ NEWACTION('reports_create', {
 	}
 });
 
-NEWACTION('reports_update/{*id:UID}', {
+NEWACTION('reports_update', {
 	name: 'Update report',
 	input: '*viewid, *name, category, icon:Icon, color:Color, group:[id:String], fields:[id:String,type:String], filter:[id:String,type:String,value:String], sort:[id:String,type:{asc|desc}], limit:number',
 	permissions: 'reports',
+	params: '*id:UID',
 	action: function($, model) {
 		var params = $.params;
 		var item = MAIN.db.items.findItem('id', params.id);
@@ -70,9 +73,10 @@ NEWACTION('reports_update/{*id:UID}', {
 	}
 });
 
-NEWACTION('reports_remove/{*id:UID}', {
+NEWACTION('reports_remove', {
 	name: 'Remove report',
 	permissions: 'reports',
+	params: '*id:UID',
 	action: function($) {
 		var params = $.params;
 		var index = MAIN.db.items.findIndex('id', params.id);
@@ -85,10 +89,11 @@ NEWACTION('reports_remove/{*id:UID}', {
 	}
 });
 
-NEWACTION('reports_execute/{*id:UID}', {
+NEWACTION('reports_execute', {
 	name: 'Execute report',
 	permissions: 'reports',
 	input: 'filter:[id:String,type:String,value:String]',
+	params: '*id:UID',
 	action: function($, model) {
 
 		var params = $.params;
