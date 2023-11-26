@@ -1,40 +1,18 @@
 <ui-component name="miniform" path="common.form2" config="if:~PATH~;title:@(Update filter);icon:ti ti-tag;reload:?/reload;submit:?/submit;width:350;zindex:30" class="hidden ~PATH~" plugin="~PATH~">
 	<div class="padding">
-
 		<ui-component name="input" path="?.type" config="required:1;dirsource:#filtertypes" default="'exact'" class="m">@(Filter type)</ui-component>
-
-		<ui-bind path="?" config="show:value.type!=='between'&&value.datatype!=='date';track:type,datatype">
-			<ui-component name="input" path="?.value" config="required:1" default="''">@(Value)</ui-component>
-		</ui-bind>
-
-		<ui-bind path="?" config="show:value.type!=='between'&&value.datatype==='date';track:type,datatype">
-			<ui-component name="input" path="?.valuedate" config="required:1;placeholder:@(yyyy-mm-dd);ricon:calendar;riconclick:?/date" default="''">@(Value)</ui-component>
-		</ui-bind>
-
-		<ui-bind path="?" config="show:value.datatype==='number'&&value.type==='between';track:datatype,type">
-			<div class="grid-2">
-				<div class="m">
-					<ui-component name="input" path="?.numbeg" config="monospace:1;align:1">@(From)</ui-component>
-				</div>
-				<div class="m">
-					<ui-component name="input" path="?.numend" config="monospace:1;align:1">@(To)</ui-component>
-				</div>
-			</div>
-		</ui-bind>
-
-		<ui-bind path="?" config="show:value.datatype==='date'&&value.type==='between';track:datatype,type">
-			<div class="grid-2">
-				<div class="m">
-					<ui-component name="input" path="?.datebeg" config="align:1;monospace:1;ricon:calendar;riconclick:?/date" default="''">@(From)</ui-component>
-				</div>
-				<div class="m">
-					<ui-component name="input" path="?.dateend" config="align:1;monospace:1;ricon:calendar;riconclick:?/date" default="''">@(To)</ui-component>
-				</div>
-			</div>
-		</ui-bind>
-
-		<div class="help">@(You can use dynamic variables in the form <code>{Label}</code>.)</div>
-
+		<ui-component name="input" path="?.value" config="required:1" default="''">@(Value)</ui-component>
+		<div class="mt10">
+			<ui-bind path="?.type" config="show:value === 'between'" class="block">
+				<div class="help nmb nmt">@(Example: <code>value1; value2</code>)</div>
+			</ui-bind>
+			<ui-bind path="?.type" config="show:value === 'in' || value === 'notin' || value === 'search2'" class="block">
+				<div class="help nmb nmt">@(Example: <code>value1; value2; value3; valueN</code>)</div>
+			</ui-bind>
+			<div class="help nmt">@(You can use dynamic variables in the form <code>{Label}</code>.)</div>
+		</div>
+		<hr style="margin:10px 0" />
+		<div class="fs12"><span class="link exec" data-exec="?/date"><i class="ti ti-calendar mr5"></i>@(Insert date)</span></div>
 	</div>
 	<nav>
 		<ui-component name="validate" path="?">
@@ -63,6 +41,8 @@
 					arr.push({ id: '=', name: '@(Equal)' });
 					arr.push({ id: '<>', name: '@(Not equal)' });
 					arr.push({ id: 'between', name: '@(Between)' });
+					arr.push({ id: 'in', name: '@(In)' });
+					arr.push({ id: 'notin', name: '@(Not in)' });
 					break;
 				case 'boolean':
 					arr.push({ id: '=', name: '@(Equal)' });
@@ -72,19 +52,21 @@
 					arr.push({ id: '=', name: '@(Equal)' });
 					arr.push({ id: '<>', name: '@(Not equal)' });
 					arr.push({ id: 'search', name: '@(Search)' });
+					arr.push({ id: 'search2', name: '@(Multiple search)' });
+					arr.push({ id: 'in', name: '@(In)' });
+					arr.push({ id: 'notin', name: '@(Not in)' });
 					break;
 			}
 
 			SET('#filtertypes', arr);
 		};
 
-		exports.date = function(com, el) {
+		exports.date = function(el) {
 			var opt = {};
 			opt.element = el;
-			opt.align = 'right';
 			opt.callback = function(val) {
-				com.set(val.format('yyyy-MM-dd'));
-				com.change(true);
+				var model = exports.model;
+				exports.set('value @change', (model.value || '') + (model.value ? '; ' : '') + val.format('yyyy-MM-dd HH:mm'));
 			};
 			SETTER('datepicker/show', opt);
 		};

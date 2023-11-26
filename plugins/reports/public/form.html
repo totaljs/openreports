@@ -345,6 +345,10 @@
 						break;
 
 					case 'filter':
+
+						if (model.filter.findItem('id', sel.id))
+							return;
+
 						tmp = {};
 						tmp.type = '=';
 						switch (types[sel.id]) {
@@ -452,44 +456,8 @@
 			var tmp;
 
 			form.datatype = type.type;
-
-			switch (form.datatype) {
-				case 'date':
-					if (item.type === 'between') {
-						tmp = item.value.split(' - ');
-						form.datebeg = (tmp[0] || '').trim();
-						form.dateend = (tmp[1] || '').trim();
-					} else
-						form.valuedate = item.value;
-					break;
-				case 'number':
-					if (item.type === 'between') {
-						tmp = item.value.split(' - ');
-						form.numbeg = (tmp[0] || '').trim();
-						form.numend = (tmp[1] || '').trim();
-					}
-					break;
-			}
-
 			form.callback = function(val) {
-				switch (form.datatype) {
-					case 'string':
-						item.value = val.value;
-						break;
-					case 'number':
-						if (item.type === 'between')
-							item.value = val.numbeg + ' - ' + val.numend;
-						else
-							item.value = val.value;
-						break;
-					case 'date':
-						if (item.type === 'between')
-							item.value = (val.datebeg ? val.datebeg : '') + ' - ' + (val.dateend ? val.dateend : '');
-						else
-							item.value = val.valuedate;
-						break;
-				}
-
+				item.value = val.value;
 				item.type = val.type;
 				exports.upd('filter');
 				exports.refresh();

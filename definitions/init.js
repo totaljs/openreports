@@ -14,27 +14,24 @@ if (db.views) {
 
 var config = db.config;
 
-if (CONF.database && !config.database)
-	config.database = CONF.database;
-
 if (!config.name)
 	config.name = 'OpenReports';
 
+if (!config.cdn)
+	config.cdn = '//cdn.componentator.com';
+
 // Fixed settings
-CONF.allow_custom_titles = true;
+CONF.$customtitles = true;
 CONF.version = '1';
 CONF.op_icon = 'ti ti-database-alt';
 
 // Loads configuration
 LOADCONFIG(db.config);
 
-if (!CONF.cdn)
-	CONF.cdn = '//cdn.componentator.com';
-
 CONF.database && require('querybuilderpg').init('default', CONF.database, 1, ERROR('DB'));
 
 // UI components
-COMPONENTATOR('ui', 'exec,locale,codemirror,aselected,page,viewbox,input,importer,box,validate,loading,selected,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2', true);
+COMPONENTATOR('ui', 'exec,codemirror,locale,aselected,page,input,viewbox,importer,box,validate,loading,selected,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2,datepicker', true);
 
 // Permissions
 ON('ready', function() {

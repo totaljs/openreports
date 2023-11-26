@@ -2,8 +2,8 @@
 	.CLASS .type-part { background-color: #E7CAF94F !important; }
 	.CLASS .type-dashboard { background-color: #FFC16E2E !important; }
 	.CLASS .type-flowboard { background-color: #B7E0A93B !important; }
-	.CLASS .listing2 { column-gap: 7px; }
-	.CLASS .listing2 figure { margin-bottom: 7px; }
+	.CLASS .listing2 { column-gap: 15px; }
+	.CLASS .listing2 figure { margin-bottom: 15px; }
 	.CLASS .listing2 figure:hover { filter:brightness(0.9); }
 	.CLASS .controls { float: right; padding: 0 5px 0 0; line-height: 20px; }
 	.CLASS .icon { width: 24px; height: 20px; line-height: 19px; font-size: 15px; padding-left: 5px; float: left; margin-right: 5px; }
@@ -155,7 +155,23 @@
 				for (var m of response.filter) {
 					if (m.value && typeof(m.value) === 'string' && (/\{.*?\}/).test(m.value)) {
 						let id = HASH(m.value).toString(36);
-						variables.push({ id: id, name: m.value.replace(/\{|\}/g, '').trim(), type: view.fields.findValue('id', m.id, 'type', 'string'), placeholder: '@(Enter a value and press enter)', required: 1, target: m });
+						let item = view.fields.findItem('id', m.id);
+
+						if (!item)
+							continue;
+
+						let obj = { id: id, name: m.value.replace(/\{|\}/g, '').trim(), type: 'string', placeholder: '@(Enter a value and press enter)', required: 1, target: m, monospace: 1 };
+
+						obj.datatype = item.type;
+
+						if (item.type === 'date') {
+							obj.ricon = 'ti ti-calendar';
+							obj.riconclick = '?/date';
+							obj.value = obj.placeholder = m.type === 'between' ? (NOW.add('-1 day').format('yyyy-MM-dd HH:mm') + '; ' + NOW.format('yyyy-MM-dd HH:mm')) : NOW.format('yyyy-MM-dd HH:mm');
+						} else if (m.type === 'between')
+							obj.placeholder = '@(value1; value2)';
+
+						variables.push(obj);
 					}
 				}
 

@@ -1,4 +1,4 @@
-<ui-component name="miniform" path="common.form" config="if:~PATH~;title:@(Dynamic filter);icon:ti ti-filter;autofocus:1;submit:?/submit;width:500" class="hidden ~PATH~" plugin="~PATH~">
+<ui-component name="miniform" path="common.form" config="if:~PATH~;title:@(Dynamic filter);icon:ti ti-filter;autofocus:1;submit:?/submit;width:600" class="hidden ~PATH~" plugin="~PATH~">
 	<div class="padding">
 		<ui-component name="properties2" path="?.items" config="defaultgroup:@(Variables)"></ui-component>
 		<div class="help"><i class="ti ti-lightbulb-on mr5"></i>@(Enter value and press enter)</div>
@@ -15,8 +15,34 @@
 
 	PLUGIN(function(exports) {
 
+		exports.date = function(item, next) {
+			var opt = {};
+			opt.element = item.element;
+			opt.align = 'right';
+			opt.callback = function(val) {
+				if (item.target.type === 'between')
+					next(val.format('yyyy-MM-dd HH:mm') + '; ' + NOW.format('yyyy-MM-dd 23:59'));
+				else
+					next(val.format('yyyy-MM-dd HH:mm'));
+			};
+			SETTER('datepicker/show', opt);
+		};
+
 		exports.submit = function() {
 			var model = exports.model;
+
+			// Convert dates to UTC
+			for (let m of model.items) {
+				if (m.datatype === 'date') {
+					let value = m.value.split(';').trim();
+					for (let i = 0; i < value.length; i++) {
+						let dt = value[i].parseDate('yyyy-MM-dd HH:mm');
+						value[i] = dt.toUTC().format('yyyy-MM-dd HH:mm');
+					}
+					m.value = value.join(';');
+				}
+			}
+
 			model.callback();
 		};
 

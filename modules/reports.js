@@ -1,3 +1,7 @@
+// PostgreSQL reports
+// The MIT License
+// Copyright 2022-2023 (c) Peter Širka <petersirka@gmail.com>
+
 const FILTER = 'fields:[*id,type:{min|max|sum|count}],group:[*id:string],filter:[*id,*type,*value],sort:[*id,type:{asc|desc}],take:number,skip:number,page:number,limit:number'.toJSONSchema();
 
 global.REPORTS = exports;
@@ -20,6 +24,9 @@ function alias(m) {
 function parse(type, value) {
 
 	var t = typeof(type);
+
+	if (!value)
+		value = '';
 
 	switch(type) {
 
@@ -58,7 +65,8 @@ function parse(type, value) {
 				if (t === 'now')
 					return NOW;
 
-				return value.trim().parseDate('yyyy-MM-dd HH:mm:ss');
+				var tmp = value.trim();
+				return tmp.parseDate('yyyy-MM-dd' + (tmp.includes(':') ? ' HH:mm:ss' : ''));
 			}
 
 			if (t === 'number')
@@ -179,16 +187,31 @@ View.prototype.exec = function(query, callback, debug) {
 					case 'search':
 						where.push(field.column + ' ILIKE ' + PG_ESCAPE('%' + parse(field.type, m.value) + '%'));
 						break;
-					case 'in':
-						tmp = m.value.split(',');
+					case 'search2':
+						tmp = m.value.split(';');
 						arr = [];
 						for (var v of tmp)
-							arr.push(PG_ESCAPE(parse(field.type, v)));
+							arr.push(field.column + ' ILIKE ' + PG_ESCAPE('%' + parse(field.type, v.trim()) + '%'));
+						where.push('(' + arr.join(' OR ') + ')');
+						break;
+					case 'in':
+						tmp = m.value.split(';');
+						arr = [];
+						for (var v of tmp)
+							arr.push(PG_ESCAPE(parse(field.type, v.trim())));
 						if (arr.length)
 							where.push(field.column + ' IN (' + arr.join(',') + ')');
 						break;
+					case 'notin':
+						tmp = m.value.split(';');
+						arr = [];
+						for (var v of tmp)
+							arr.push(PG_ESCAPE(parse(field.type, v.trim())));
+						if (arr.length)
+							where.push(field.column + ' NOT IN (' + arr.join(',') + ')');
+						break;
 					case 'between':
-						tmp = m.value.split(' - ');
+						tmp = m.value.split(/\s-\s|;/).trim();
 						if (data.group && scalar[m.id])
 							having.push('(' + scalar[m.id] + ' BETWEEN ' + PG_ESCAPE(parse(field.type, tmp[0])) + ' AND ' + PG_ESCAPE(parse(field.type, tmp[1])) + ')');
 						else

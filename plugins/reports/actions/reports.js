@@ -105,6 +105,6 @@ NEWACTION('reports_execute', {
 			item.filter = model.filter;
 		}
 
-		view.exec(item, $.callback);
+		view.exec(item, $);
 	}
 });

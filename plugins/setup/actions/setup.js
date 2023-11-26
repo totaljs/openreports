@@ -15,7 +15,7 @@ NEWACTION('setup_read', {
 	name: 'Read configuration',
 	permissions: 'setup',
 	action: function($) {
-		$.callback(MAIN.db.config);
+		$.callback(MAIN.database.config);
 	}
 });
 
