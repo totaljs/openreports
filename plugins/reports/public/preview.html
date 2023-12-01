@@ -120,7 +120,8 @@
 					case 'date':
 						obj.type = col.type;
 						obj.width = 150;
-						obj.format = 'yyyy-MM-dd - HH:mm';
+						if (!obj.format)
+							obj.format = 'yyyy-MM-dd - HH:mm';
 						break;
 				}
 
@@ -136,7 +137,7 @@
 			}
 
 			$('#reportsdata').html(('<ui-component name="datagrid" path="{0}.response" config="noborder:1;height:.ui-box;margin:126;checkbox:false" class="invisible"><scri' + 'pt type="text/html">[{1}]</scr' + 'ipt></ui-component>').format(exports.name, columns.join(',')));
-			exports.tapi('reports_execute/{0} @showloading'.format(data.id), { filter: data.filter }, function(response) {
+			exports.tapi('reports_execute @showloading', { id: data.id, filter: data.filter }, function(response) {
 				Box.reconfigure({ title: '@(Data): {0}'.format(response.length.pluralize('@(# records,# record,# records,# records)')) });
 				exports.set('response @hideloading', response);
 			});

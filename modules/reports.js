@@ -4,13 +4,20 @@
 
 const FILTER = 'fields:[*id,type:{min|max|sum|count}],group:[*id:string],filter:[*id,*type,*value],sort:[*id,type:{asc|desc}],take:number,skip:number,page:number,limit:number'.toJSONSchema();
 
-global.REPORTS = exports;
+global.Reports = exports;
 exports.views = [];
 
 function View(data) {
+
 	for (var key in data)
 		this[key] = data[key];
+
 	this.cache = {};
+	this.cache2 = {};
+
+	for (let m of this.fields)
+		this.cache2[m.id] = m;
+
 	for (let m of this.fields) {
 		m.id = 'x' + HASH(m.column).toString(36);
 		this.cache[m.id] = m;

@@ -6,12 +6,6 @@ if (!db.config)
 if (!db.items)
 	db.items = [];
 
-if (db.views) {
-	for (let m of db.views)
-		REPORTS.create(m);
-} else
-	db.views = [];
-
 var config = db.config;
 
 if (!config.name)

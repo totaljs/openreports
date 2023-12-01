@@ -14,14 +14,25 @@
 			<div class="padding npb">
 
 				<div>
+
 					<div class="m">
 						<ui-component name="input" path="?.name" config="required:1">@(Name)</ui-component>
 					</div>
 
 					<div class="m">
-						<ui-component name="input" path="?.database" config="required:1;innerlabel:1;camouflage:1;placeholder:postgres\://user\:password@localhost/database">@(Connection string)</ui-component>
+						<ui-component name="input" path="?.database" config="innerlabel:1;camouflage:1;placeholder:postgres\://user\:password@localhost/database">@(Connection string)</ui-component>
 						<div class="help">@(A connection string to the PostgreSQL database.)</div>
 					</div>
+
+					<hr />
+
+					<div class="m">
+						<ui-component name="input" path="?.api" config="type:checkbox"><b>@(Enable API for reading reports)</b></ui-component>
+					</div>
+					<ui-bind path="?.api" config="enable" class="m block">
+						<ui-component name="input" path="?.token" config="camouflage:1;required:1">@(Token)</ui-component>
+						<ui-bind path="?.api" config="show" class="help hidden block"><span class="exec link pull-right" data-exec="?/copy"><i class="ti ti-copy mr5"></i>@(Copy link)</span><span class="exec link" data-exec="?/token"><i class="ti ti-key mr5"></i>@(Generate token)</span>. @(API token secures API endpoint for reading reports.)</ui-bind>
+					</ui-bind>
 
 					<div class="m">
 
@@ -82,12 +93,19 @@
 			});
 		};
 
-		exports.generate = function() {
-			exports.set('secret_tms @type:show', GUID(35));
+		exports.copy = function() {
+			EXEC('-clipboard/copy', location.origin + '/reports/?token=' + (exports.model.token || ''));
+			EXEC('-notify/success', '@(Copied.)');
 		};
 
 		exports.token = function() {
-			exports.set('token @type:show', GUID(30));
+			var model = exports.model;
+			if (model.api)
+				exports.set('token @change @type:show', GUID(35));
+		};
+
+		exports.generate = function() {
+			exports.set('secret_tms @type:show', GUID(35));
 		};
 
 	});

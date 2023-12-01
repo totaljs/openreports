@@ -1,7 +1,7 @@
 NEWACTION('views', {
 	name: 'List of views',
 	action: function($) {
-		$.callback(REPORTS.export());
+		$.callback(Reports.export());
 	}
 });
 
@@ -11,7 +11,7 @@ NEWACTION('views_read', {
 	permissions: 'views',
 	action: function($) {
 		var id = $.query.id;
-		var item = REPORTS.read(id);
+		var item = Reports.read(id);
 		if (item) {
 			var obj = CLONE(item);
 			delete obj.cache;
@@ -37,8 +37,8 @@ NEWACTION('views_save', {
 		else
 			db.views[index] = model;
 
-		REPORTS.create(model);
-		FUNC.check();
+		Reports.create(model);
+		check();
 		db.save();
 		$.success(model.id);
 	}
@@ -67,9 +67,36 @@ NEWACTION('views_remove', {
 
 			db.views.splice(index, 1);
 			db.save();
-			REPORTS.remove(id);
+			Reports.remove(id);
 			$.success(id);
 		} else
 			$.invalid(404);
 	}
+});
+
+// Checks relations between views and reports
+function remove(arr, view) {
+	return arr.remove(n => view.fields.findItem('id', n.id) == null);
+}
+
+function check() {
+	for (var view of Reports.views) {
+		for (var report of MAIN.db.items) {
+			if (report.viewid === view.id) {
+				report.group = remove(report.group, view);
+				report.filter = remove(report.filter, view);
+				report.fields = remove(report.fields, view);
+				report.sort = remove(report.sort, view);
+			}
+		}
+	}
+}
+
+ON('ready', function() {
+	var db = MAIN.db;
+	if (db.views) {
+		for (let m of db.views)
+			Reports.create(m);
+	} else
+		db.views = [];
 });

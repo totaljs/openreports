@@ -1,7 +1,7 @@
 NEWACTION('setup_save', {
 	name: 'Save configuration',
 	permissions: 'setup',
-	input: '*name, *database, op_reqtoken, op_restoken',
+	input: '*name, database, token, op_reqtoken, op_restoken, api:boolean',
 	action: function($, model) {
 		COPY(model, MAIN.db.config);
 		LOADCONFIG(model);
@@ -15,7 +15,7 @@ NEWACTION('setup_read', {
 	name: 'Read configuration',
 	permissions: 'setup',
 	action: function($) {
-		$.callback(MAIN.database.config);
+		$.callback(MAIN.db.config);
 	}
 });
 

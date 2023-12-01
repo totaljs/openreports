@@ -12,7 +12,9 @@ exports.install = function() {
 	ROUTE('+API    /api/    +reports_update/{id}          --> reports_update');
 	ROUTE('+API    /api/    -reports_remove/{id}          --> reports_remove');
 	ROUTE('+API    /api/    -reports_clone/{id}           --> reports_clone');
-	ROUTE('+API    /api/    +reports_execute/{id}         --> reports_execute');
+	ROUTE('+API    /api/    +reports_execute              --> reports_execute');
 
+	ROUTE('GET     /reports/                              --> reports_ex_info');
+	ROUTE('POST    /reports/                              --> reports_ex_exec');
 
 };
