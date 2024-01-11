@@ -250,6 +250,11 @@ NEWACTION('reports_ex_exec', {
 		}
 
 		var item = MAIN.db.items.findItem('id', model.id);
+		if (!item) {
+			$.invalid(404);
+			return;
+		}
+
 		var view = Reports.read(item.viewid);
 
 		if (view) {
