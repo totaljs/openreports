@@ -199,6 +199,7 @@ NEWACTION('reports_ex_info', {
 
 			obj.id = item.id;
 			obj.name = item.name;
+			obj.category = item.category;
 			obj.filter = [];
 			obj.fields = [];
 
