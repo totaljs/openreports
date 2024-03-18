@@ -1,6 +1,6 @@
 // PostgreSQL reports
 // The MIT License
-// Copyright 2022-2023 (c) Peter Širka <petersirka@gmail.com>
+// Copyright 2022-2024 (c) Peter Širka <petersirka@gmail.com>
 
 const FILTER = 'fields:[*id,type:{min|max|sum|count}],group:[*id:string],filter:[*id,*type,*value],sort:[*id,type:{asc|desc}],take:number,skip:number,page:number,limit:number'.toJSONSchema();
 
@@ -13,15 +13,15 @@ function View(data) {
 		this[key] = data[key];
 
 	this.cache = {};
-	this.cache2 = {};
-
-	for (let m of this.fields)
-		this.cache2[m.id] = m;
 
 	for (let m of this.fields) {
-		m.id = 'x' + HASH(m.column).toString(36);
+		if (m.output === '@')
+			m.id = m.column;
+		else
+			m.id = m.output || ('x' + HASH(m.column).toString(36));
 		this.cache[m.id] = m;
 	}
+
 }
 
 function alias(m) {

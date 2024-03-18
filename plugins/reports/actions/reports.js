@@ -280,7 +280,7 @@ NEWACTION('reports_ex_exec', {
 				output.fields = [];
 
 				for (let field of item.fields) {
-					let tmp = view.cache2[field.id];
+					let tmp = view.cache[field.id];
 					if (tmp)
 						output.fields.push({ id: tmp.id, name: tmp.name, datatype: tmp.type, type: field.type || undefined, format: tmp.format });
 				}

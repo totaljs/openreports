@@ -25,17 +25,18 @@ NEWACTION('views_read', {
 
 NEWACTION('views_save', {
 	name: 'Create view',
-	input: '*id, *name, *sql, fields:[*column, *name, *type, format:number, group:boolean]',
+	input: '*id, *name, *sql, fields:[output, *column, *name, *type, format:number, group:boolean]',
 	permissions: 'views',
 	action: function($, model) {
 
 		var db = MAIN.db;
 		var index = db.views.findIndex('id', model.id);
+		var cloned = CLONE(model);
 
 		if (index == -1)
-			db.views.push(model);
+			db.views.push(cloned);
 		else
-			db.views[index] = model;
+			db.views[index] = cloned;
 
 		Reports.create(model);
 		check();
