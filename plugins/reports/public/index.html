@@ -147,7 +147,28 @@
 
 				for (var m of response.fields) {
 					var field = view.fields.findItem('id', m.id);
-					fields.push(field);
+					field && fields.push(field);
+				}
+
+				if (!fields.length) {
+
+					if (!response.fields.length) {
+						if (response.group && response.group.length) {
+							for (var m of response.group) {
+								var field = view.fields.findItem('id', m.id);
+								field && fields.push(field);
+							}
+						} else {
+							for (var m of view.fields)
+								fields.push(m);
+						}
+					}
+
+					if (!fields.length) {
+						SETTER('message/warning', "@(Some fields were modified. Edit the report and specify the fields again.)");
+						return;
+					}
+
 				}
 
 				var variables = [];
