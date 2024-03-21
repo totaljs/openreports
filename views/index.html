@@ -84,6 +84,7 @@
 		common.name = '@{CONF.name}';
 		common.plugins = PARSE('#pluginsdata');
 		common.ready = false;
+		common.init = false;
 
 		// Injects Token to every API request
 		(function() {
@@ -129,7 +130,15 @@
 		});
 
 		ROUTE('/', function() {
+
+			if (!common.init && common.plugins.findItem('id', 'reporting')) {
+				REDIRECT('/reporting/');
+				common.init = true;
+				return;
+			}
+
 			SET('common.page', 'welcome');
+
 		}, 'init');
 
 		ON('@flag showloading', function() {
