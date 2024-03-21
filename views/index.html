@@ -91,13 +91,15 @@
 			if (openplatform) {
 				var hostname = openplatform.substring(0, openplatform.indexOf('/', 10));
 				openplatform = '?openplatform=' + encodeURIComponent(openplatform);
-			} else
-				common.ready = true;
-			DEF.api = '/api/' + openplatform;
+			}
+			common.ready = true;
+			DEF.api = '@{CONF.$api}' + openplatform;
 			$('body').rclass('invisible', 200);
 		})();
 
-		NAV.custom(true);
+		if (W.top !== W && common.openplatform)
+			NAV.custom();
+
 		NAV.clientside('.jR');
 
 		MIDDLEWARE('init', function(next) {
@@ -137,30 +139,6 @@
 		ON('@flag hideloading', function() {
 			SETTER('loading/hide', 700);
 		});
-
-		// A simple integration for navigation
-		W.APP_INIT = function() {
-
-			common.ready = true;
-
-			APP.on('init', function() {
-
-				var ready = false;
-
-				ON('location', function(url) {
-					if (url === '/' && !ready)
-						ready = true;
-					else
-						APP.path(url);
-				});
-			});
-
-			APP.on('path', function(path) {
-				if (NAV.url !== path)
-					REDIRECT(path);
-			});
-
-		};
 
 	</script>
 

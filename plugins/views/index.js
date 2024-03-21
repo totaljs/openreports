@@ -6,9 +6,9 @@ exports.visible = user => user.sa || user.permissions.includes('views');
 
 exports.install = function() {
 
-	ROUTE('+API    /api/    -views');
-	ROUTE('+API    /api/    -views_read');
-	ROUTE('+API    /api/    +views_save');
-	ROUTE('+API    /api/    -views_remove');
+	ROUTE('+API    ?    -views');
+	ROUTE('+API    ?    -views_read');
+	ROUTE('+API    ?    +views_save');
+	ROUTE('+API    ?    -views_remove');
 
 };
