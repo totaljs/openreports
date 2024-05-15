@@ -92,7 +92,7 @@ NEWACTION('reports_create', {
 		model.id = UID();
 		model.userid = $.user.id;
 		model.dtcreated = NOW;
-		model.categoryid = model.category ? model.categoryid.makeid() : null;
+		model.categoryid = model.category ? model.category.makeid() : null;
 		MAIN.db.items.push(model);
 		MAIN.db.save();
 		$.success(model.id);
