@@ -25,7 +25,7 @@ LOADCONFIG(db.config);
 CONF.database && require('querybuilderpg').init('default', CONF.database, 1, ERROR('DB'));
 
 // UI components
-COMPONENTATOR('ui', 'exec,codemirror,locale,aselected,page,input,viewbox,importer,box,validate,loading,selected,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2,datepicker', true);
+COMPONENTATOR('ui', 'exec,codemirror,locale,aselected,page,input,importer,viewbox,box,validate,selected,loading,intranetcss,notify,message,errorhandler,empty,menu,ready,fileuploader,colorpicker,approve,icons,directory,miniform,movable,searchinput,search,datagrid,clipboard,filesaver,properties2,datepicker', true);
 
 // Permissions
 ON('ready', function() {
