@@ -1,3 +1,5 @@
+const REG_NUMBER = /[0-9,.]+/;
+
 function refresh_permissions() {
 
 	OpenPlatform.permissions = OpenPlatform.permissions.remove(key => key[0] === '_');
@@ -19,7 +21,7 @@ function refresh_permissions() {
 }
 
 function permitted($, item) {
-	if ($.user.sa || item.userid === $.user.id || (item.categoryid && $.user.permissions.includes('_' + item.categoryid)))
+	if ($.user.sa || item.userid === $.user.id || ($.user.permissions.includes('all') || (item.categoryid && $.user.permissions.includes('_' + item.categoryid))))
 		return true;
 }
 
@@ -32,7 +34,7 @@ NEWACTION('reports', {
 
 		for (var item of MAIN.db.items) {
 			if (permitted($, item))
-				arr.push({ id: item.id, category: item.category, name: item.name, color: item.color, icon: item.icon, dtcreated: item.dtcreated, dtupdated: item.dtupdated });
+				arr.push({ id: item.id, private: item.private, category: item.category, name: item.name, color: item.color, icon: item.icon, chart: item.chart, dtcreated: item.dtcreated, dtupdated: item.dtupdated });
 		}
 
 		$.callback(arr);
@@ -86,7 +88,7 @@ NEWACTION('reports_clone', {
 
 NEWACTION('reports_create', {
 	name: 'Create report',
-	input: '*viewid, *name, category, icon:Icon, color:Color, group:[id:String], fields:[id:String,type:String], filter:[id:String,type:String,value:String], sort:[id:String,type:{asc|desc}], limit:number',
+	input: '*viewid, *name, category, icon:Icon, color:Color, group:[id:String], fields:[id:String,type:String], filter:[id:String,type:String,value:String], sort:[id:String,type:{asc|desc}], limit:number, chart:Boolean, x, y, series, private:Boolean',
 	permissions: 'reports',
 	action: function($, model) {
 		model.id = UID();
@@ -102,7 +104,7 @@ NEWACTION('reports_create', {
 
 NEWACTION('reports_update', {
 	name: 'Update report',
-	input: '*viewid, *name, category, icon:Icon, color:Color, group:[id:String], fields:[id:String,type:String], filter:[id:String,type:String,value:String], sort:[id:String,type:{asc|desc}], limit:number',
+	input: '*viewid, *name, category, icon:Icon, color:Color, group:[id:String], fields:[id:String,type:String], filter:[id:String,type:String,value:String], sort:[id:String,type:{asc|desc}], limit:number, chart:Boolean, x, y, series, private:Boolean',
 	permissions: 'reports',
 	params: '*id:UID',
 	action: function($, model) {
@@ -114,7 +116,7 @@ NEWACTION('reports_update', {
 			if (permitted($, item)) {
 				COPY(model, item);
 				item.dtupdated = NOW;
-				item.categoryid = item.category ? item.categoryid.makeid() : null;
+				item.categoryid = item.category ? item.category.makeid() : null;
 				MAIN.db.save();
 				$.success(params.id);
 				refresh_permissions();
@@ -153,7 +155,7 @@ NEWACTION('reports_remove', {
 NEWACTION('reports_execute', {
 	name: 'Execute report',
 	permissions: 'reports',
-	input: '*id:UID,filter:[id:String,type:String,value:String]',
+	input: '*id:UID,filter:[id:String,type:String,value:String],chart:boolean',
 	action: function($, model) {
 
 		var item = MAIN.db.items.findItem('id', model.id);
@@ -164,7 +166,22 @@ NEWACTION('reports_execute', {
 					item = CLONE(item);
 					item.filter = model.filter;
 				}
-				view.exec(item, $);
+				view.exec(item, function(err, response) {
+
+					if (err) {
+						$.invalid(err);
+						return;
+					}
+
+
+					if (model.chart && item.chart) {
+						makechart($, item, response, item);
+						return;
+					}
+
+					$.callback(response);
+
+				});
 				return;
 			}
 		}
@@ -194,7 +211,7 @@ NEWACTION('reports_ex_info', {
 			var obj = {};
 			var view = MAIN.db.views.findItem('id', item.viewid);
 
-			if (!view)
+			if (!view || view.private)
 				continue;
 
 			obj.id = item.id;
@@ -202,6 +219,13 @@ NEWACTION('reports_ex_info', {
 			obj.category = item.category;
 			obj.filter = [];
 			obj.fields = [];
+			obj.chart = item.chart;
+
+			if (item.chart) {
+				obj.x = item.x;
+				obj.y = item.y;
+				obj.series = item.series;
+			}
 
 			for (let m of item.fields) {
 				let tmp = CLONE(m);
@@ -234,9 +258,70 @@ NEWACTION('reports_ex_info', {
 	}
 });
 
+
+function makechartvalue(axis) {
+
+	if (typeof(axis.y) === 'string') {
+		axis.y = axis.y ? axis.y.toString() : '0';
+		if (axis.y) {
+			if (!axis.format) {
+				let match = axis.y.match(REG_NUMBER);
+				if (match) {
+					item.format = axis.y.replace(match, '{0}');
+					axis.y = match.toString().parseFloat();
+				} else
+					axis.y = axis.y.parseFloat();
+			}
+		}
+	}
+
+	return axis;
+}
+
+function makechart($, view, response, report) {
+
+	var output = null;
+
+	if (view.series) {
+		let cache = {};
+		for (let m of response) {
+			let key = m[view.series];
+			let arr = cache[key];
+			if (!arr)
+				arr = cache[key] = [];
+			let x = m[view.x];
+			if (x == null)
+				x = '';
+			arr.push(makechartvalue({ x: x, y: m[view.y] }));
+		}
+		output = [];
+		for (let key in cache)
+			output.push({ id: report.id + '_' + HASH(key), name: key, icon: report.icon, color: report.color, data: cache[key] });
+	} else {
+
+		output = {};
+		output.id = report.id;
+		output.name = report.name;
+		output.icon = report.icon;
+		output.color = report.color;
+		output.data = [];
+
+		for (let m of response) {
+			let x = m[view.x];
+			if (!x)
+				x = '';
+			output.data.push(makechartvalue({ x: x, y: m[view.y] }));
+		}
+
+		output = [output];
+	}
+
+	$.callback(output);
+}
+
 NEWACTION('reports_ex_exec', {
 	name: 'External report',
-	input: '*id:UID,filter:[*id,value]',
+	input: '*id:UID,filter:[*id,value],chart:boolean',
 	action: function($, model) {
 
 		if (!CONF.api) {
@@ -258,7 +343,7 @@ NEWACTION('reports_ex_exec', {
 
 		var view = Reports.read(item.viewid);
 
-		if (view) {
+		if (view && !view.private) {
 			if (model.filter && model.filter.length) {
 				item = CLONE(item);
 				for (let filter of model.filter) {
@@ -273,6 +358,11 @@ NEWACTION('reports_ex_exec', {
 				if (err) {
 					$.invalid('Unhandled error');
 					F.error(err, 'reports_ex_exec', $.url);
+					return;
+				}
+
+				if (model.chart && view.chart) {
+					makechart($, view, response, item);
 					return;
 				}
 

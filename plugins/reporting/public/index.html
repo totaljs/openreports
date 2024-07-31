@@ -52,12 +52,15 @@
 									<section>
 										{{ if m.controls }}
 										<div class="controls">
-											<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+											{{ if m.chart }}
+											<span class="exec mr10" data-exec="?/chart" data-prevent="true" title="@(Show chart)"><i class="ti ti-chart-bar"></i></span>
+											{{ fi }}
+											<span class="exec" data-exec="?/options" data-prevent="true" title="@(Options)"><i class="ti ti-cog"></i></span>
 										</div>
 										{{ fi }}
 										<div>
 											<div class="icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon | empty('ti ti-list') }}"></i></div>
-											<div class="name hellip">{{ m.name }}</div>
+											<div class="name hellip">{{ if m.chart }}<span class="pull-right badge badge-color mr10"><i class="ti ti-chart-bar"></i>@(chart)</span>{{ fi }}{{ m.name }}{{ if m.private }}<span class="badge badge-small badge-orange ml5">@(private)</span>{{ fi }}</div>
 										</div>
 									</section>
 								</figure>
@@ -75,6 +78,7 @@
 </ui-plugin>
 
 <ui-component name="importer" path="common.form" config="if:formreport;url:/~ID~/form.html"></ui-component>
+<ui-component name="importer" path="common.form" config="if:formchart;url:/~ID~/chart.html"></ui-component>
 <ui-component name="importer" path="common.form2" config="if:formreportfield;url:/~ID~/field.html"></ui-component>
 <ui-component name="importer" path="common.form2" config="if:formreportfilter;url:/~ID~/filter.html"></ui-component>
 <ui-component name="importer" path="common.form" config="if:formvariables;url:/~ID~/variables.html"></ui-component>
@@ -137,13 +141,18 @@
 			SET('common.form', 'formreport');
 		};
 
-		exports.preview = function(el) {
+		exports.chart = function(el) {
+			exports.preview(el, true);
+		};
+
+		exports.preview = function(el, ischart) {
 			var id = ATTRD(el);
 			var model = exports.model;
 			exports.tapi('reports_read/{0} ERROR'.format(id), function(response) {
 
 				var view = DEF.cl.views.findItem('id', response.viewid);
 				var fields = [];
+				var target = ischart === true ? 'formchart' : 'formpreview';
 
 				for (var m of response.fields) {
 					var field = view.fields.findItem('id', m.id);
@@ -211,15 +220,16 @@
 							m.target.value = m.value;
 
 						data.filter = response.filter;
-						SET('formpreview', data);
-						SET('common.form', 'formpreview');
+						SET(target, data);
+						SET('*form', target);
 					};
 
 					SET('formvariables @reset', filter);
-					SET('common.form', 'formvariables');
+					SET('*form', 'formvariables');
+
 				} else {
-					SET('formpreview', data);
-					SET('common.form', 'formpreview');
+					SET(target, data);
+					SET('*form', target);
 				}
 			});
 		};
@@ -228,7 +238,7 @@
 			var id = ATTRD(el);
 			exports.tapi('reports_read/{0} ERROR'.format(id), function(response) {
 				SET('formreport @reset', response);
-				SET('common.form', 'formreport');
+				SET('*form', 'formreport');
 			});
 		};
 
@@ -248,18 +258,27 @@
 		};
 
 		exports.options = function(el) {
+			var model = exports.model;
+			var item = model.items.findItem('id', ATTRD(el));
 			var opt = {};
 			opt.element = el;
 			opt.align = 'right';
 			opt.items = [];
 			opt.items.push({ id: 'preview', name: '@(Browse data)', classname: 'b', icon: 'ti ti-database-alt' });
+
+			if (item.chart)
+				opt.items.push({ id: 'chart', name: '@(Show chart)', icon: 'ti ti-chart-bar' });
+
 			opt.items.push('-');
 			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'ti ti-clone' });
 			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'ti ti-pencil-alt' });
 			opt.items.push('-');
 			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'ti ti-remove red' });
 			opt.callback = function(sel) {
-				exports[sel.id](el);
+				var name = sel.id;
+				if (name === 'chart')
+					name = 'preview';
+				exports[name](el, sel.id === 'chart');
 			};
 			EXEC('-menu/show', opt);
 		};

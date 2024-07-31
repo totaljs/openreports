@@ -11,7 +11,7 @@
 
 <ui-component name="box" path="common.form" config="if:~PATH~;icon:ti ti-table;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:740" class="hidden ~PATH~" plugin="~PATH~">
 	<div>
-		<div class="padding">
+		<div class="padding bg-smoke">
 			<div class="grid-2">
 				<div class="m">
 					<ui-component name="input" path="?.name" config="required:1">@(Name)</ui-component>
@@ -20,21 +20,22 @@
 					<ui-component name="input" path="?.viewid" config="dirsource:#views;placeholder:@(Choose a view);required:1">@(View)</ui-component>
 				</div>
 			</div>
-		</div>
-		<div class="padding bg-smoke">
-			<div class="grid-3">
+			<ui-component name="input" path="?.private" config="type:checkbox">@(Private report)</ui-component>
+			<hr />
+			<div class="grid-2">
 				<div class="m">
 					<ui-component name="input" path="?.category" config="dirsource:#categories;dirempty:@(Empty);dircustom:1;dirplaceholder:@(Enter new or search for an existing);dirminwidth:300">@(Category)</ui-component>
 				</div>
-				<div class="m">
-					<ui-component name="input" path="?.icon" config="type:icon">@(Icon)</ui-component>
-				</div>
-				<div class="m">
-					<ui-component name="input" path="?.color" config="type:color">@(Color)</ui-component>
+				<div class="grid-2">
+					<div class="m">
+						<ui-component name="input" path="?.icon" config="type:icon">@(Icon)</ui-component>
+					</div>
+					<div class="m">
+						<ui-component name="input" path="?.color" config="type:color">@(Color)</ui-component>
+					</div>
 				</div>
 			</div>
 		</div>
-		<hr class="nmb nmt" />
 		<div class="padding">
 			<div class="current fs12">
 				<div class="m">
@@ -141,13 +142,36 @@
 						</div>
 					</div>
 				</div>
-				<hr />
+				<hr style="margin:25px 0" />
 				<div class="grid-3">
 					<div class="m">
 						<ui-component name="input" path="?.limit" config="type:number;icon:ti ti-filter" default="1000">@(Limit output to)</ui-component>
 					</div>
 				</div>
 			</div>
+
+			<hr style="margin-top:10px" />
+			<ui-component name="input" path="?.chart" config="type:checkbox" default="false" class="m">@(Enable chart view)</ui-component>
+
+			<ui-bind path="?.chart" config="show" class="block padding bg-smoke radius mt10">
+
+				<div class="caption m">
+					<label><i class="ti ti-chart-bar"></i>@(Chart settings)</label>
+				</div>
+
+				<div class="grid-3">
+					<div class="m">
+						<ui-component name="input" path="?.x" config="required:1;dirsource:?|render.fields;dirkey:html;dirraw:1;dirempty:@(None)" default="''">@(X axis)</ui-component>
+					</div>
+					<div class="m">
+						<ui-component name="input" path="?.y" config="required:1;dirsource:?|render.fields;dirkey:html;dirraw:1;dirempty:@(None)" default="''">@(Y axis)</ui-component>
+					</div>
+					<div class="m">
+						<ui-component name="input" path="?.series" config="dirsource:?|render.fields;dirkey:html;dirraw:1;dirempty:@(None)" default="''">@(Series for)</ui-component>
+					</div>
+				</div>
+			</ui-bind>
+
 		</div>
 	</div>
 	<nav>
@@ -184,8 +208,10 @@
 			var fields = [];
 			var filter = [];
 			var model = exports.model;
-			var cache = {};
 			var view = model.viewid ? DEF.cl.views.findItem('id', model.viewid) : null;
+			var cache = {};
+			var xcache = {};
+			var ycache = {};
 
 			if (!model.sort)
 				model.sort = [];
@@ -340,7 +366,7 @@
 
 					case 'group':
 						if (!model.group.findItem('id', sel.id)) {
-							exports.push('group', { id: sel.id });
+							exports.push('group @change', { id: sel.id });
 							exports.refresh();
 						}
 						break;
@@ -366,7 +392,7 @@
 								tmp.value = NOW.format('yyyy-MM-dd');
 								break;
 						}
-						exports.push('filter', { id: sel.id, type: tmp.type, value: tmp.value });
+						exports.push('filter @change', { id: sel.id, type: tmp.type, value: tmp.value });
 						exports.refresh();
 						break;
 
@@ -375,7 +401,7 @@
 							tmp = {};
 							tmp.id = sel.id;
 							tmp.type = model.group.length && model.group.findItem('id', sel.id) ? '' : (model.group.length ? 'max' : '');
-							exports.push('fields', tmp);
+							exports.push('fields @change', tmp);
 							exports.refresh();
 						}
 						break;
@@ -385,7 +411,7 @@
 							tmp = {};
 							tmp.id = sel.id;
 							tmp.type = 'desc';
-							exports.push('sort', tmp);
+							exports.push('sort @change', tmp);
 							exports.refresh();
 						}
 						break;
@@ -404,7 +430,7 @@
 			var index = model[typeid].findIndex('id', id);
 			model[typeid].splice(index, 1);
 			exports.refresh();
-			exports.upd(typeid);
+			exports.upd(typeid + ' @change');
 		};
 
 		exports.submit = function(hide) {

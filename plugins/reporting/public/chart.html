@@ -1,0 +1,250 @@
+<ui-component name="miniform" path="common.form" config="if:CLASS;icon:ti ti-chart-bar;closeesc:1;reload:?/reload;width:750" class="hidden CLASS" plugin="CLASS">
+	<div class="padding">
+		<ui-component name="barchart" path="?.data"></ui-component>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function(com) {
+			var model = exports.model;
+			com.reconfigure({ title: model.name });
+
+			exports.tapi('reports_execute @showloading', { id: model.id, chart: true, filter: model.filter }, function(response) {
+				exports.set('data @hideloading', response);
+			});
+		};
+
+	});
+
+	COMPONENT('barchart', 'decimals:0;datetype:[date]', function(self, config, cls) {
+
+		var chart = null;
+		var timeout = null;
+		var dateformat = '%d.%m.%Y';
+		var format = '';
+		var decimals = null;
+		var chartdata = [];
+		var element = self.element;
+
+		self.make = function() {
+
+			self.append('<div></div>');
+
+			var options = {
+				chart: {
+					type: 'column',
+				},
+				noData: {
+					useHTML: true
+				},
+				title: {
+					text: null
+				},
+				xAxis: {
+					type: 'datetime',
+					title: {
+						text: null
+					},
+					gridLineWidth: 1,
+					lineWidth: 0,
+					labels: {
+						formatter: function() {
+							return typeof this.value === 'number' || this.value instanceof Date ? Highcharts.dateFormat(dateformat, Date.parse(this.value)) : this.value;
+						},
+						style: {
+							fontSize: '11px'
+						}
+					},
+				},
+				yAxis: {
+					min: 0,
+					title: {
+						text: null,
+						align: 'high'
+					},
+					labels: {
+						overflow: 'justify',
+						formatter: function() {
+							return format.includes('{') ? format.format((this.value).format(config.decimals)) : (this.value).format(config.decimals) + ' ' + format;
+						},
+						style: {
+							fontSize: '11px'
+						}
+					},
+					gridLineWidth: 0,
+
+				},
+				tooltip: {
+					formatter: function() {
+						var value = format.includes('{') ? format.format((this.y).format(config.decimals)) : ((this.y).format(config.decimals)) + ' ' + format;
+						return '<b>' + Highcharts.dateFormat(dateformat, Date.parse(this.x)) + '</b><br/><span>' + this.series.name + '</span>: <b> ' + value + '</b>';
+					}
+				},
+				plotOptions: {
+					bar: {
+						dataLabels: {
+							enabled: true
+						},
+						groupPadding: 0.1
+					},
+					series: {
+						data: [],
+						dataLabels: [{
+							formatter: function() {
+								return format.includes('{') ? format.format((this.y).format(config.decimals)) : ((this.y).format()) + ' ' + format;
+							}
+						}]
+					}
+				},
+				legend: {
+					align: 'center',
+					verticalAlign: 'bottom',
+				},
+				credits: {
+					enabled: false
+				}
+			};
+
+			self.render = function(response) {
+				var series = [];
+				var categories = [];
+
+				for (var item of response) {
+					var serie = {};
+					serie.data = [];
+					serie.name = item.name;
+
+					// serie.color = item.color;
+
+					format = item.format || '{0}';
+
+					for (let m of item.data) {
+						serie.data.push(m.y);
+						categories.push(m.x);
+					}
+
+					serie.data.reverse();
+					series.push(serie);
+				}
+
+				var uniqcategories = [...new Set(categories)];
+				options.series = series;
+				options.xAxis.categories = uniqcategories.reverse();
+				chart = Highcharts.chart(element.find('div')[0], options);
+			};
+		};
+
+		self.setter = function(value) {
+			timeout && clearTimeout(timeout);
+			timeout = setTimeout(self.render, 200, value);
+		};
+
+	}, ['https://code.highcharts.com/highcharts.js']);
+
+	COMPONENT('barchart_apex', 'decimals:0;datetype:[date]', function(self, config, cls) {
+
+		var container = '<div class="{0}-barchart"><div class="{0}-barchart-apex"></div></div>'.format(cls);
+		var chart = null;
+		var options = {};
+		var timeout = null;
+		var format = '';
+		var element = self.element;
+
+		self.make = function() {
+
+			element.append(container);
+
+			var options = {
+				chart: {
+					type: 'bar',
+					toolbar: {
+						show: false,
+						tools: {
+							zoom: false
+						}
+					}
+				},
+				legend: {
+					show: true,
+					position: 'bottom',
+					fontSize: '11px',
+					itemMargin: {
+						vertical: 5
+					}
+				},
+				tooltip: {
+					y: {
+						formatter: value => (format.includes('{') ? format.format((value).format(config.decimals)) : ((value).format(config.decimals)) + ' ' + format)
+					}
+				},
+				yaxis: {
+					max: max => (config.max ? config.max : max),
+					min: min => (config.min ? config.min : min),
+					labels: {
+						formatter: value => (value instanceof Date ? value.format(config.dateformat) : value)
+					}
+				},
+				xaxis: {
+					labels: {
+						formatter: value => (format.includes('{') ? format.format((value).format(config.decimals)) : ((value).format(config.decimals)) + ' ' + format),
+						style: {
+							fontSize: '11px'
+						}
+					}
+				},
+				plotOptions: {
+					bar: {
+						horizontal: false
+					}
+				},
+				dataLabels: {
+					enabled: false
+				}
+			};
+
+			self.render = function(response) {
+
+				timeout = null;
+
+				var series = [];
+				var categories = [];
+
+				for (let item of response) {
+					var serie = {};
+					serie.data = [];
+					serie.name = item.name;
+
+					for (let m of item.data) {
+						format = (item.unit ? item.unit : m.format) || '{0}';
+						serie.data.push(m.y);
+						categories.push(m.x);
+					}
+
+					serie.data.reverse();
+					series.push(serie);
+				}
+
+				var uniqcategories = [...new Set(categories)];
+
+				options.series = series;
+				options.xaxis.categories = uniqcategories;
+				chart = new ApexCharts(element.find('.{0}-barchart-apex'.format(cls))[0], options);
+				chart.render();
+			};
+
+		};
+
+		self.setter = function(value) {
+			timeout && clearTimeout(timeout);
+			timeout = setTimeout(self.render, 200, value);
+		};
+
+	}, ['https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.3/apexcharts.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.3/apexcharts.min.css']);
+
+</script>
