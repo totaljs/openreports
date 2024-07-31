@@ -2,8 +2,8 @@
 	.CLASS .type-part { background-color: #E7CAF94F !important; }
 	.CLASS .type-dashboard { background-color: #FFC16E2E !important; }
 	.CLASS .type-flowboard { background-color: #B7E0A93B !important; }
-	.CLASS .listing2 { column-gap: 7px; }
-	.CLASS .listing2 figure { margin-bottom: 7px; }
+	.CLASS .listing2 { column-gap: 15px; }
+	.CLASS .listing2 figure { margin-bottom: 15px; }
 	.CLASS .listing2 figure:hover { filter:brightness(0.9); }
 	.CLASS .controls { float: right; padding: 0 5px 0 0; line-height: 20px; }
 	.CLASS .icon { width: 24px; height: 20px; line-height: 19px; font-size: 15px; padding-left: 5px; float: left; margin-right: 5px; }
@@ -75,12 +75,12 @@
 
 		exports.create = function() {
 			SET('formview @reset', { data: `{
-	id: "yourviewid",
-	name: "Products",
-	sql: "SELECT name, price FROM tbl_product",
-	fields: [
-		{ column: "name", name: "Name", type: "string", group: true },
-		{ column: "price", name: "Price", type: "number" }
+	"id": "yourviewid",
+	"name": "Products",
+	"sql": "SELECT name, price FROM tbl_product",
+	"fields": [
+		{ "column": "name", "name": "Name", "type": "string", "group": true },
+		{ "output": "@", "column": "price", "name": "Price", "type": "number" }
 	]
 }` });
 			SET('common.form', 'formview');
