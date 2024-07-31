@@ -175,7 +175,7 @@
 		</div>
 	</div>
 	<nav>
-		<ui-component name="validate" path="?">
+		<ui-component name="validate" path="?" config="track:unknown">
 			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
 			<button name="cancel">@(Cancel)</button>
 		</ui-component>
@@ -366,8 +366,9 @@
 
 					case 'group':
 						if (!model.group.findItem('id', sel.id)) {
-							exports.push('group @change', { id: sel.id });
+							exports.push('group', { id: sel.id });
 							exports.refresh();
+							exports.change();
 						}
 						break;
 
@@ -392,8 +393,9 @@
 								tmp.value = NOW.format('yyyy-MM-dd');
 								break;
 						}
-						exports.push('filter @change', { id: sel.id, type: tmp.type, value: tmp.value });
+						exports.push('filter', { id: sel.id, type: tmp.type, value: tmp.value });
 						exports.refresh();
+						exports.change();
 						break;
 
 					case 'fields':
@@ -401,8 +403,9 @@
 							tmp = {};
 							tmp.id = sel.id;
 							tmp.type = model.group.length && model.group.findItem('id', sel.id) ? '' : (model.group.length ? 'max' : '');
-							exports.push('fields @change', tmp);
+							exports.push('fields', tmp);
 							exports.refresh();
+							exports.change();
 						}
 						break;
 
@@ -411,8 +414,9 @@
 							tmp = {};
 							tmp.id = sel.id;
 							tmp.type = 'desc';
-							exports.push('sort @change', tmp);
+							exports.push('sort', tmp);
 							exports.refresh();
+							exports.change();
 						}
 						break;
 				}
@@ -491,6 +495,10 @@
 			};
 			SET('formreportfilter @default', form);
 			SET('common.form2', 'formreportfilter');
+		};
+
+		exports.change = function() {
+			exports.upd('unknown @change');
 		};
 
 		exports.move = function(arr, el) {

@@ -137,7 +137,7 @@
 		};
 
 		exports.create = function() {
-			SET('formreport @reset', { group: [], fields: [], filter: [], sort: [] });
+			SET('formreport @default', { group: [], fields: [], filter: [], sort: [] });
 			SET('common.form', 'formreport');
 		};
 
