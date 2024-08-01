@@ -282,17 +282,17 @@ function makechart($, view, response, report) {
 
 	var output = null;
 
-	if (view.series) {
+	if (report.series) {
 		let cache = {};
 		for (let m of response) {
-			let key = m[view.series];
+			let key = m[report.series];
 			let arr = cache[key];
 			if (!arr)
 				arr = cache[key] = [];
-			let x = m[view.x];
+			let x = m[report.x];
 			if (x == null)
 				x = '';
-			arr.push(makechartvalue({ x: x, y: m[view.y] }));
+			arr.push(makechartvalue({ x: x, y: m[report.y] }));
 		}
 		output = [];
 		for (let key in cache)
@@ -307,10 +307,10 @@ function makechart($, view, response, report) {
 		output.data = [];
 
 		for (let m of response) {
-			let x = m[view.x];
+			let x = m[report.x];
 			if (!x)
 				x = '';
-			output.data.push(makechartvalue({ x: x, y: m[view.y] }));
+			output.data.push(makechartvalue({ x: x, y: m[report.y] }));
 		}
 
 		output = [output];
@@ -343,7 +343,8 @@ NEWACTION('reports_ex_exec', {
 
 		var view = Reports.read(item.viewid);
 
-		if (view && !view.private) {
+		if (view && !item.private) {
+
 			if (model.filter && model.filter.length) {
 				item = CLONE(item);
 				for (let filter of model.filter) {
@@ -351,8 +352,8 @@ NEWACTION('reports_ex_exec', {
 					if (tmp && tmp.value.includes('{'))
 						tmp.value = filter.value;
 				}
-
 			}
+
 			view.exec(item, function(err, response) {
 
 				if (err) {
@@ -361,7 +362,7 @@ NEWACTION('reports_ex_exec', {
 					return;
 				}
 
-				if (model.chart && view.chart) {
+				if (model.chart && item.chart) {
 					makechart($, view, response, item);
 					return;
 				}
