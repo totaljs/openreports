@@ -15,6 +15,6 @@ exports.install = function() {
 	ROUTE('+API    ?    +reports_execute       <60s   --> reports_execute');
 
 	ROUTE('GET     /reports/                          --> reports_ex_info');
-	ROUTE('POST    /reports/                          --> reports_ex_exec');
+	ROUTE('POST    /reports/                   <60s   --> reports_ex_exec');
 
 };
